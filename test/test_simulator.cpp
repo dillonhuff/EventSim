@@ -2,8 +2,6 @@
 
 #include "catch.hpp"
 
-#include "coreir.h"
-
 #include "simulator.h"
 
 using namespace CoreIR;
@@ -34,8 +32,6 @@ namespace EventSim {
     andrN->setDef(def);
 
     c->runPasses({"rungenerators","flattentypes","flatten"});
-    // RunGenerators rg;
-    // rg.runOnNamespace(g);
 
     EventSimulator state(andrN);
 

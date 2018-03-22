@@ -75,7 +75,10 @@ namespace EventSim {
     }
 
     void setValue(const std::string& name, const BitVector& bv) {
-      
+      CoreIR::SelectPath path = CoreIR::splitString<CoreIR::SelectPath>(name, '.');
+      assert(path.size() > 0);
+
+      //Instance* inst = 
     }
 
     BitVector getBitVec(const std::string& name) {
