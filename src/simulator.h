@@ -2,6 +2,8 @@
 
 #include "coreir.h"
 
+#include "algorithm.h"
+
 namespace EventSim {
 
   enum WireValueType {
@@ -56,6 +58,7 @@ namespace EventSim {
 
       // Add interface default values
       last_values[self] = defaultWireValue(self);
+      values[self] = defaultWireValue(self);
 
       // TODO: Add all output wire defaults
     }
@@ -75,10 +78,20 @@ namespace EventSim {
     }
 
     void setValue(const std::string& name, const BitVector& bv) {
-      CoreIR::SelectPath path = CoreIR::splitString<CoreIR::SelectPath>(name, '.');
-      assert(path.size() > 0);
+      assert(mod->getDef()->canSel(name));
+      CoreIR::Wireable* s = mod->getDef()->sel(name);
 
-      //Instance* inst = 
+      assert(CoreIR::isa<CoreIR::Select>(s));
+
+      CoreIR::Select* sel = CoreIR::cast<CoreIR::Select>(s);
+
+      CoreIR::Wireable* top = sel->getTopParent();
+
+      std::cout << "Top = " << top->toString() << std::endl;
+      assert(contains_key(top, values));
+
+      WireValue* v = values.at(top);
+      assert(v != nullptr);
     }
 
     BitVector getBitVec(const std::string& name) {
