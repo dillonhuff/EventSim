@@ -5,6 +5,7 @@
 #include "simulator.h"
 
 using namespace CoreIR;
+using namespace std;
 
 namespace EventSim {
 
@@ -54,6 +55,47 @@ namespace EventSim {
     deleteContext(c);
   }
 
-  TEST_CASE("Simulating a mux") {
+  TEST_CASE("Simulating a mux loop") {
+
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    uint width = 2;
+
+    Type* twoMuxType =
+      c->Record({
+          {"in", c->BitIn()->Arr(width)},
+            {"sel", c->BitIn()},
+              {"out", c->Bit()->Arr(width)}
+        });
+
+    Module* twoMux = c->getGlobal()->newModuleDecl("twoMux", twoMuxType);
+    ModuleDef* def = twoMux->newModuleDef();
+
+    def->addInstance("mux0",
+                     "coreir.mux",
+                     {{"width", Const::make(c, width)}});
+
+    def->connect("self.sel", "mux0.sel");
+    def->connect("self.in", "mux0.in0");
+    def->connect("mux0.out", "mux0.in1");
+    def->connect("mux0.out", "self.out");
+
+    twoMux->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    cout << "Creating twoMux simulation" << endl;
+
+    EventSimulator state(twoMux);
+    state.setValue("self.sel", BitVector(1, 0));
+    state.setValue("self.in", BitVector(width, "11"));
+
+    //state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, "11"));
+      
+    deleteContext(c);
+    
   }
 }

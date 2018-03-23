@@ -187,7 +187,30 @@ namespace EventSim {
       setValueNoUpdate(outSel, res);
       return true;
       
+    } else if (opName == "coreir.mux") {
+      BitVec sel = getBitVec(inst->sel("sel"));
+      BitVec in0 = getBitVec(inst->sel("in0"));
+      BitVec in1 = getBitVec(inst->sel("in1"));
+
+      // Always pick input 0 for unknown values. Could select a random
+      // value if we wanted to
+      if (sel.get(0).is_unknown()) {
+        setValueNoUpdate(inst->sel("out"), in0);
+      } else {
+        if (sel.get(0).binary_value() == 0) {
+          setValueNoUpdate(inst->sel("out"), in0);
+        } else {
+          setValueNoUpdate(inst->sel("out"), in1);
+        }
+      }
+
+      return true;
+
+    } else {
+      cout << "ERROR: Unsupported operation " << opName << endl;
+      assert(false);
     }
+
     return false;
   }
 
