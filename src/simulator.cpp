@@ -277,6 +277,7 @@ namespace EventSim {
         Select* sel = selR.second;
         if (sel->getType()->getDir() == Type::DK_Out) {
           cout << "\tAdding " << sel->toString() << endl;
+          cout << "\tWith vaule " << sim->getBitVec(sel) << endl;
           freshSignals.insert(sel);
         }
       }
