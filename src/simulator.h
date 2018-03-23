@@ -211,6 +211,12 @@ namespace EventSim {
         return r->getFieldValue(selStr);
       }
 
+      if (tp == WIRE_VALUE_ARRAY) {
+        const ArrayValue* const r = static_cast<const ArrayValue* const>(w);
+        return r->elemMutable(std::stoi(selStr));
+      }
+
+      std::cout << "ERROR: Cannot find " << selStr << std::endl;
       assert(false);
     }
 
@@ -229,6 +235,9 @@ namespace EventSim {
       const std::string& selStr = sel->getSelStr();
 
       WireValue* parent = getWireValue(sel->getParent());
+
+      // std::cout << "Selecting " << selStr << " from " << sel->toString() << std::endl;
+      // std::cout << "Parent = " << sel->getParent()->toString() << std::endl;
       
       return selectField(selStr, parent);
     }

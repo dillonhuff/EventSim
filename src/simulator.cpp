@@ -105,7 +105,7 @@ namespace EventSim {
       auto receiverSels = getReceiverSelects(next);
       set<Wireable*> nodesToUpdate;
       for (auto rSel : receiverSels) {
-        cout << "\tReceives " << rSel->toString() << endl;
+        //cout << "\tReceives " << rSel->toString() << endl;
         Wireable* top = rSel->getTopParent();
 
         nodesToUpdate.insert(top);
@@ -151,9 +151,9 @@ namespace EventSim {
 
   void EventSimulator::updateInputs(CoreIR::Wireable* const inst) {
     // Set the values on all instance selects?
-    cout << "Updating " << inst->toString() << endl;
+    //cout << "Updating " << inst->toString() << endl;
     for (auto conn : getSourceConnections(inst)) {
-      cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+      //cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
       Wireable* driver = conn.first;
       Wireable* receiver = conn.second;
       WireValue* driverValue = getWireValue(driver);
@@ -163,7 +163,7 @@ namespace EventSim {
 
   bool EventSimulator::updateInstance(CoreIR::Instance* const inst) {
     string opName = getQualifiedOpName(*inst);
-    cout << "Instance type name = " << opName << endl;
+    //cout << "Instance type name = " << opName << endl;
 
 
     if (opName == "coreir.andr") {
@@ -174,8 +174,6 @@ namespace EventSim {
       // TODO: Need to add machinery to retrieve the net from a wire
       BitVec sB = getBitVec(inst->sel("in"));
 
-      cout << "sB = " << sB << endl;
-
       for (int i = 0; i < sB.bitLength(); i++) {
         if (sB.get(i) != 1) {
           res = BitVec(1, 0);
@@ -184,30 +182,19 @@ namespace EventSim {
       }
 
       Select* outSel = inst->sel("out");
-      cout << "Setting " << outSel->toString() << " to " << res << endl;
       setValueNoUpdate(outSel, res);
+
       return true;
-      
     } else if (opName == "coreir.mux") {
-      BitVec oldSel = getBitVec(inst->sel("sel"));
-      BitVec oldIn0 = getBitVec(inst->sel("in0"));
-      BitVec oldIn1 = getBitVec(inst->sel("in1"));
+
+      // TODO: Find a more uniform way to check before and after conditions?
+      BitVec oldOut = getBitVec(inst->sel("out"));
 
       updateInputs(inst);
 
       BitVec sel = getBitVec(inst->sel("sel"));
       BitVec in0 = getBitVec(inst->sel("in0"));
       BitVec in1 = getBitVec(inst->sel("in1"));
-
-      cout << "sel = " << sel << endl;
-      cout << "in0 = " << in0 << endl;
-      cout << "in1 = " << in1 << endl;
-
-      if (same_representation(sel, oldSel) &&
-          same_representation(in0, oldIn0) &&
-          same_representation(in1, oldIn1)) {
-        return false;
-      }
 
       // Always pick input 0 for unknown values. Could select a random
       // value if we wanted to
@@ -221,8 +208,38 @@ namespace EventSim {
         }
       }
 
+      if (same_representation(getBitVec(inst->sel("out")), oldOut)) {
+        return false;
+      }
+
       return true;
 
+    } else if (opName == "coreir.slice") {
+      Values args = inst->getModuleRef()->getGenArgs();
+      uint lo = (args["lo"])->get<int>();
+      uint hi = (args["hi"])->get<int>();
+
+      assert((hi - lo) > 0);
+
+      BitVec oldOut = getBitVec(inst->sel("out"));
+
+      BitVec res(hi - lo, 1);
+      BitVec sB = getBitVec(inst->sel("in"));
+      for (uint i = lo; i < hi; i++) {
+        res.set(i - lo, sB.get(i));
+      }
+
+      if (same_representation(res, oldOut)) {
+        return false;
+      }
+
+      Select* outSel = inst->sel("out");
+      setValueNoUpdate(outSel, res);
+
+      return true;
+      
+    } else if ((opName == "corebit.term") || (opName == "coreir.term")) {
+      return false;
     } else {
       cout << "ERROR: Unsupported operation " << opName << endl;
       assert(false);

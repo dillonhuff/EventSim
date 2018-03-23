@@ -3,6 +3,8 @@
 #include "catch.hpp"
 
 #include "simulator.h"
+#include "coreir/libs/rtlil.h"
+#include "coreir/libs/commonlib.h"
 
 using namespace CoreIR;
 using namespace std;
@@ -98,4 +100,84 @@ namespace EventSim {
     deleteContext(c);
     
   }
+
+  TEST_CASE("Commonlib mux") {
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    uint N = 71;
+    uint width = 16;
+
+    CoreIRLoadLibrary_commonlib(c);
+
+    Type* muxNType =
+      c->Record({
+          {"in",c->Record({
+                {"data",c->BitIn()->Arr(width)->Arr(N)},
+                  {"sel",c->BitIn()->Arr(7)}
+              })},
+            {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* muxNTest = c->getGlobal()->newModuleDecl("muxN", muxNType);
+    ModuleDef* def = muxNTest->newModuleDef();
+
+    def->addInstance("mux0",
+                     "commonlib.muxn",
+                     {{"width", Const::make(c, width)},
+                         {"N", Const::make(c, N)}});
+
+    def->connect("mux0.out", "self.out");
+
+    def->connect({"self", "in", "sel"},
+                 {"mux0", "in", "sel"});
+    for (uint i = 0; i < N; i++) {
+      def->connect({"self", "in", "data", to_string(i)},
+                   {"mux0", "in", "data", to_string(i)});
+    }
+
+    muxNTest->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    EventSimulator state(muxNTest);
+
+    for (uint i = 0; i < N; i++) {
+      state.setValue("self.in_data_" + to_string(i), BitVector(width, i));
+    }
+
+    state.setValue("self.in_sel", BitVector(7, "0010011"));
+    //state.setValue("self.in_sel", BitVector(7, "1111111"));
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(16, 18));
+
+    deleteContext(c);
+    
+  }
+
+  // TEST_CASE("Whole CGRA") {
+  //   Context* c = newContext();
+  //   Namespace* g = c->getGlobal();
+
+  //   CoreIRLoadLibrary_rtlil(c);
+
+  //   Module* top;
+  //   if (!loadFromFile(c,"./test/top.json", &top)) {
+  //     cout << "Could not Load from json!!" << endl;
+  //     c->die();
+  //   }
+
+  //   c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
+
+  //   cout << "Creating simulator" << endl;
+  //   EventSimulator sim(top);
+  //   cout << "Done creating simulator" << endl;
+  //   sim.setValue("self.config_addr_in", BitVector("32'h15"));
+  //   cout << "Set config addr " << endl;
+
+    
+  //   deleteContext(c);
+  // }
+
 }
