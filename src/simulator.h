@@ -28,7 +28,29 @@ namespace EventSim {
     RecordValue(const std::vector<std::pair<std::string, WireValue*> >& fields_) :
       fields(fields_) {}
 
+    const std::vector<std::pair<std::string, WireValue*> >& getFields() const {
+      return fields;
+    }
+
     virtual WireValueType getType() const { return WIRE_VALUE_RECORD; }
+
+    void setFieldValue(const std::string& fieldName,
+                       WireValue* wv) {
+      bool found = false;
+      std::vector<std::pair<std::string, WireValue*> > fresh_fields;
+
+      for (int i = 0; i < ((int) fields.size()); i++) {
+        if (fields[i].first == fieldName) {
+          fresh_fields.push_back({fields[i].first, wv});
+          found = true;
+        } else {
+          fresh_fields.push_back(fields[i]);
+        }
+      }
+
+      assert(found);
+      fields = fresh_fields;
+    }
 
     WireValue* getFieldValue(const std::string& fieldName) const {
       for (auto& field : fields) {
@@ -85,9 +107,10 @@ namespace EventSim {
     CoreIR::Module* mod;
 
     std::map<CoreIR::Wireable*, WireValue*> values;
-    std::map<CoreIR::Wireable*, WireValue*> last_values;
 
     std::set<WireValue*> wireValues;
+
+    std::map<CoreIR::Instance*, EventSimulator*> submodules;
 
   public:
     EventSimulator(CoreIR::Module* const mod_) : mod(mod_) {
@@ -98,15 +121,15 @@ namespace EventSim {
       CoreIR::Wireable* self = def->sel("self");
 
       // Add interface default values
-      last_values[self] = defaultWireValue(self);
       values[self] = defaultWireValue(self);
 
       for (auto instR : def->getInstances()) {
         values[instR.second] = defaultWireValue(instR.second);
-        // Maybe we should set default values only for selects that are
-        // outputs? Then when getBitVec is called get the net associated with
-        // each select?
-        last_values[instR.second] = defaultWireValue(instR.second);
+
+        if (instR.second->getModuleRef()->hasDef()) {
+          submodules[instR.second] =
+            new EventSimulator(instR.second->getModuleRef());
+        }
       }
     }
 
@@ -202,6 +225,14 @@ namespace EventSim {
       assert(false);
     }
 
+    WireValue* getSelfValue() const {
+      return getWireValue(mod->getDef()->sel("self"));
+    }
+
+    CoreIR::Wireable* getSelf() const {
+      return mod->getDef()->sel("self");
+    }
+    
     WireValue* getWireValue(CoreIR::Wireable* const w) const {
       if (!CoreIR::isa<CoreIR::Select>(w)) {
         assert(contains_key(w, values));
@@ -242,6 +273,10 @@ namespace EventSim {
     ~EventSimulator() {
       for (auto val : wireValues) {
         delete val;
+      }
+
+      for (auto mod : submodules) {
+        delete mod.second;
       }
     }
   };

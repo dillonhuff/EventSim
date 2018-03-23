@@ -38,6 +38,24 @@ namespace EventSim {
       return;
     }
 
+    if (receiver->getType() == WIRE_VALUE_RECORD) {
+      RecordValue* const receiverRecord =
+        static_cast<RecordValue* const>(receiver);
+
+      const RecordValue* const sourceRecord =
+        static_cast<const RecordValue* const>(source);
+
+      assert(receiverRecord->getFields().size() == sourceRecord->getFields().size());
+
+      for (auto field : receiverRecord->getFields()) {
+        receiverRecord->setFieldValue(field.first,
+                                      sourceRecord->getFieldValue(field.first));
+      }
+
+      return;
+
+    }
+
     assert(false);
   }
 
@@ -242,6 +260,30 @@ namespace EventSim {
       
     } else if ((opName == "corebit.term") || (opName == "coreir.term")) {
       return false;
+    } else if (inst->getModuleRef()->hasDef()) {
+
+      // Save outputs of the module
+
+      updateInputs(inst);
+
+      EventSimulator* sim = submodules[inst];
+      sim->setValueNoUpdate(sim->getSelf(), getWireValue(inst));
+
+      std::set<CoreIR::Select*> freshSignals;
+
+      cout << "Updating " << inst->toString() << " : " << opName << endl;
+      for (auto selR : sim->getSelf()->getSelects()) {
+
+        Select* sel = selR.second;
+        if (sel->getType()->getDir() == Type::DK_Out) {
+          cout << "\tAdding " << sel->toString() << endl;
+          freshSignals.insert(sel);
+        }
+      }
+      sim->updateSignals(freshSignals);
+
+      setValueNoUpdate(inst, sim->getSelfValue());
+      
     } else {
       cout << "ERROR: Unsupported operation " << opName << endl;
       assert(false);

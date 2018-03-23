@@ -94,8 +94,6 @@ namespace EventSim {
     state.setValue("self.sel", BitVector(1, 0));    
     state.setValue("self.in", BitVector(width, "11"));
 
-    //state.execute();
-
     REQUIRE(state.getBitVec("self.out") == BitVector(width, "11"));
       
     deleteContext(c);
@@ -142,6 +140,7 @@ namespace EventSim {
 
     c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
 
+    cout << "# of instances = " << muxNTest->getDef()->getInstances().size() << endl;
     EventSimulator state(muxNTest);
 
     for (uint i = 0; i < N; i++) {
@@ -149,7 +148,6 @@ namespace EventSim {
     }
 
     state.setValue("self.in_sel", BitVector(7, "0010010"));
-    //state.setValue("self.in_sel", BitVector(7, "1111111"));
 
     REQUIRE(state.getBitVec("self.out") == BitVector(16, 18));
 
@@ -203,7 +201,7 @@ namespace EventSim {
       state.setValue("self.in.data." + to_string(i), BitVector(width, i));
     }
 
-    state.setValue("self.in_sel", BitVector(7, "0010010"));
+    state.setValue("self.in.sel", BitVector(7, "0010010"));
 
     REQUIRE(state.getBitVec("self.out") == BitVector(16, 18));
 
