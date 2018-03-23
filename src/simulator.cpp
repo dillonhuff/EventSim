@@ -99,7 +99,7 @@ namespace EventSim {
       CoreIR::Select* next = *std::begin(freshSignals);
       freshSignals.erase(next);
 
-      cout << "Updates from " << next->toString() << endl;
+      //cout << "Updates from " << next->toString() << endl;
 
       // Update bits stored in v
       auto receiverSels = getReceiverSelects(next);
@@ -133,10 +133,10 @@ namespace EventSim {
 
         // Assumes no use of inout ports.
         if (isa<Instance>(node)) {
-          cout << "\tChecking outputs of " << node->toString() << endl;
+          //cout << "\tChecking outputs of " << node->toString() << endl;
           for (auto sel : node->getSelects()) {
             if (sel.second->getType()->getDir() == Type::DirKind::DK_Out) {
-              cout << "\t\tis output " << sel.second->toString() << endl;
+              //cout << "\t\tis output " << sel.second->toString() << endl;
 
               freshSignals.insert(sel.second);
             }

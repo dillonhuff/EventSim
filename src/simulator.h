@@ -89,24 +89,6 @@ namespace EventSim {
 
     std::set<WireValue*> wireValues;
 
-    // Problem: How to build this map from wires to the driver
-    // of the net the wire is a member of?
-    // I guess:
-    // Iterate over all instances and ports on self and for
-    // each select in the design: if the select is an output
-    // iterate over all sub-selects. A bit question is: should all
-    // connections be done wire by wire?
-
-    // Nets are inherently a bit-by bit thing, otherwise you
-    // need a hierarchy. For example fi
-    //    a.out   ----> a.in
-    //    a.out.0 ----> b.in.0
-    // there is a "net" {a.out, a.in} and a "net" {a.out.0, b.in.0}
-    // so if you think of {a.out, a.in} as shorthand for:
-    // {a.out.0, a.out.1, ...., a.in.0, a.in.1, ....} Then
-    // a.out.0 is in 2 nets
-    std::map<CoreIR::Wireable*, CoreIR::Wireable*> netmap;
-
   public:
     EventSimulator(CoreIR::Module* const mod_) : mod(mod_) {
       assert(mod != nullptr);
