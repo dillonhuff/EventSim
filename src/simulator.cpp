@@ -165,9 +165,10 @@ namespace EventSim {
     string opName = getQualifiedOpName(*inst);
     cout << "Instance type name = " << opName << endl;
 
-    updateInputs(inst);
 
     if (opName == "coreir.andr") {
+      updateInputs(inst);
+
       BitVec res(1, 1);
 
       // TODO: Need to add machinery to retrieve the net from a wire
@@ -188,9 +189,25 @@ namespace EventSim {
       return true;
       
     } else if (opName == "coreir.mux") {
+      BitVec oldSel = getBitVec(inst->sel("sel"));
+      BitVec oldIn0 = getBitVec(inst->sel("in0"));
+      BitVec oldIn1 = getBitVec(inst->sel("in1"));
+
+      updateInputs(inst);
+
       BitVec sel = getBitVec(inst->sel("sel"));
       BitVec in0 = getBitVec(inst->sel("in0"));
       BitVec in1 = getBitVec(inst->sel("in1"));
+
+      cout << "sel = " << sel << endl;
+      cout << "in0 = " << in0 << endl;
+      cout << "in1 = " << in1 << endl;
+
+      if (same_representation(sel, oldSel) &&
+          same_representation(in0, oldIn0) &&
+          same_representation(in1, oldIn1)) {
+        return false;
+      }
 
       // Always pick input 0 for unknown values. Could select a random
       // value if we wanted to
