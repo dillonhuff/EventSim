@@ -148,7 +148,7 @@ namespace EventSim {
       state.setValue("self.in_data_" + to_string(i), BitVector(width, i));
     }
 
-    state.setValue("self.in_sel", BitVector(7, "0010011"));
+    state.setValue("self.in_sel", BitVector(7, "0010010"));
     //state.setValue("self.in_sel", BitVector(7, "1111111"));
 
     REQUIRE(state.getBitVec("self.out") == BitVector(16, 18));

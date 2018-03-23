@@ -223,7 +223,9 @@ namespace EventSim {
 
       BitVec oldOut = getBitVec(inst->sel("out"));
 
-      BitVec res(hi - lo, 1);
+      updateInputs(inst);
+
+      BitVec res(hi - lo, 0);
       BitVec sB = getBitVec(inst->sel("in"));
       for (uint i = lo; i < hi; i++) {
         res.set(i - lo, sB.get(i));
