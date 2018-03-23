@@ -314,6 +314,51 @@ namespace EventSim {
       BitVec out = getBitVec(inst->sel("out"));
           
       return !same_representation(oldOut, out);
+    } else if (opName == "coreir.reg_arst") {
+
+      BitVec oldOut = getBitVec(inst->sel("out"));
+      BitVec oldClk = getBitVec(inst->sel("clk"));
+      BitVec oldRst = getBitVec(inst->sel("arst"));
+      
+      updateInputs(inst);
+
+      
+      BitVec clk = getBitVec(inst->sel("clk"));
+      BitVec rst = getBitVec(inst->sel("arst"));
+
+      BitVec initVal = inst->getModArgs().at("init")->get<BitVec>();
+
+      bool updateOnPosedge =
+        inst->getModArgs().at("clk_posedge")->get<bool>();
+
+      bool resetOnPosedge =
+        inst->getModArgs().at("arst_posedge")->get<bool>();
+      
+      // TODO: Add x considerations
+      bool posedgeClk = (clk == BitVec(1, 1)) && (oldClk == BitVec(1, 0));
+      bool negedgeClk = (clk == BitVec(1, 0)) && (oldClk == BitVec(1, 1));
+
+      if (updateOnPosedge && posedgeClk) {
+        setValueNoUpdate(inst->sel("out"), getWireValue(inst->sel("in")));
+      } else if (!updateOnPosedge && negedgeClk) {
+        setValueNoUpdate(inst->sel("out"), getWireValue(inst->sel("in")));
+      }
+
+      bool posedgeRst = (rst == BitVec(1, 1)) && (oldRst == BitVec(1, 0));
+      bool negedgeRst = (rst == BitVec(1, 0)) && (oldRst == BitVec(1, 1));
+      
+      // Reset has priority over clock
+      if (resetOnPosedge && posedgeRst) {
+        setValueNoUpdate(inst->sel("out"), initVal);
+      } else if (!resetOnPosedge && negedgeRst) {
+        setValueNoUpdate(inst->sel("out"), initVal);
+      }
+
+      BitVec out = getBitVec(inst->sel("out"));
+          
+      return !same_representation(oldOut, out);
+      
+      assert(false);
     } else {
       cout << "ERROR: Unsupported operation " << opName << endl;
       assert(false);

@@ -315,29 +315,29 @@ namespace EventSim {
     
   }
 
-  // TEST_CASE("Whole CGRA") {
-  //   Context* c = newContext();
-  //   Namespace* g = c->getGlobal();
+  TEST_CASE("Whole CGRA") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
 
-  //   CoreIRLoadLibrary_rtlil(c);
+    CoreIRLoadLibrary_rtlil(c);
 
-  //   Module* top;
-  //   if (!loadFromFile(c,"./test/top.json", &top)) {
-  //     cout << "Could not Load from json!!" << endl;
-  //     c->die();
-  //   }
+    Module* top;
+    if (!loadFromFile(c,"./test/top.json", &top)) {
+      cout << "Could not Load from json!!" << endl;
+      c->die();
+    }
 
-  //   c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
+    c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
-  //   cout << "Creating simulator" << endl;
-  //   EventSimulator sim(top);
-  //   cout << "Done creating simulator" << endl;
-  //   sim.setValue("self.config_addr_in", BitVector("32'h15"));
-  //   cout << "Set config addr " << endl;
+    cout << "Creating simulator" << endl;
+    EventSimulator sim(top);
+    cout << "Done creating simulator" << endl;
+    sim.setValue("self.config_addr_in", BitVector("32'h15"));
+    cout << "Set config addr " << endl;
 
     
-  //   deleteContext(c);
-  // }
+    deleteContext(c);
+  }
 
   
 }
