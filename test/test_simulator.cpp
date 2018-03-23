@@ -38,6 +38,10 @@ namespace EventSim {
     SECTION("Bitvector that is all ones") {
       state.setValue("self.in", BitVec(n, "11111111111"));
 
+      SECTION("Input is actually set") {
+        REQUIRE(state.getBitVec("self.in") == BitVec(n, "11111111111"));
+      }
+
       REQUIRE(state.getBitVec("self.out") == BitVec(1, 1));
     }
 

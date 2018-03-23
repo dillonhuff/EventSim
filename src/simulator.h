@@ -51,6 +51,8 @@ namespace EventSim {
     virtual WireValueType getType() const { return WIRE_VALUE_ARRAY; }
 
     const WireValue* const elem(const int i) const { return elems[i]; }
+
+    WireValue* const elemMutable(const int i) const { return elems[i]; }
     int length() const { return elems.size(); }
   };
 
@@ -62,6 +64,10 @@ namespace EventSim {
     virtual WireValueType getType() const { return WIRE_VALUE_BIT; }
 
     bsim::quad_value value() const { return bitVal; }
+
+    void setValue(const bsim::quad_value value) {
+      bitVal = value;
+    }
   };
 
   class NamedValue : public WireValue {
@@ -69,6 +75,7 @@ namespace EventSim {
     virtual WireValueType getType() const = 0;
   };
 
+  void setWireBitVector(const BitVector& bv, WireValue& value);
   BitVector extractBitVector(const WireValue& value);
   
   class EventSimulator {
@@ -146,10 +153,13 @@ namespace EventSim {
       std::cout << "Top = " << top->toString() << std::endl;
       assert(contains_key(top, values));
 
-      WireValue* v = values.at(top);
+      WireValue* v = getWireValue(s); //values.at(top);
       assert(v != nullptr);
 
       // TODO: Actually set the value of v to bv
+      std::cout << "Setting value of " << name << std::endl;
+      setWireBitVector(bv, *v);
+      std::cout << "Setting value of " << name << std::endl;
 
       std::set<CoreIR::Select*> freshSignals;
       freshSignals.insert(sel);

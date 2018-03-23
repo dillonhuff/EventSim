@@ -5,6 +5,34 @@ using namespace std;
 
 namespace EventSim {
 
+  void setWireBitVector(const BitVector& bv, WireValue& value) {
+    cout << "Value = " << value.getType() << endl;
+
+    assert((value.getType() == WIRE_VALUE_ARRAY) ||
+           (value.getType() == WIRE_VALUE_BIT));
+
+    if (value.getType() == WIRE_VALUE_BIT) {
+      assert(bv.bitLength() == 1);
+
+      BitValue& bitVal = static_cast<BitValue&>(value);
+      bitVal.setValue(bv.get(0));
+
+      return;
+    }
+
+    assert(value.getType() == WIRE_VALUE_ARRAY);
+
+    auto& val = static_cast<ArrayValue&>(value);
+    for (int i = 0; i < val.length(); i++) {
+      auto bi = val.elemMutable(i);
+      assert(bi->getType() == WIRE_VALUE_BIT);
+      auto bib = static_cast<BitValue*>(bi);
+
+      bib->setValue(bv.get(i));
+    }
+
+  }
+
   BitVector extractBitVector(const WireValue& value) {
     assert((value.getType() == WIRE_VALUE_ARRAY) ||
            (value.getType() == WIRE_VALUE_BIT));
