@@ -120,6 +120,7 @@ namespace EventSim {
         if (isa<Instance>(node)) {
           changed = updateInstance(cast<Instance>(node));
         } else {
+          updateInputs(node);
         }
 
         if (changed) {
