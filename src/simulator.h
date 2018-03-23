@@ -92,6 +92,7 @@ namespace EventSim {
       values[self] = defaultWireValue(self);
 
       // TODO: Add all output wire defaults
+      
     }
 
     WireValue* defaultWireValue(CoreIR::Wireable* const w) {
@@ -108,7 +109,6 @@ namespace EventSim {
       } else if (CoreIR::isa<CoreIR::ArrayType>(w->getType())) {
 
         CoreIR::ArrayType* arrTp = CoreIR::cast<CoreIR::ArrayType>(w->getType());
-        //CoreIR::ArrayType* elemTp = arrTyp->getElemType();
 
         std::vector<WireValue*> arrValues;
         for (int i = 0; i < (int) arrTp->getLen(); i++) {
@@ -130,6 +130,10 @@ namespace EventSim {
       return val;
     }
 
+    void updateInstance(const CoreIR::Instance* const inst);
+
+    void updateSignals(std::set<CoreIR::Select*>& freshSignals);
+    
     void setValue(const std::string& name, const BitVector& bv) {
       assert(mod->getDef()->canSel(name));
       CoreIR::Wireable* s = mod->getDef()->sel(name);
@@ -145,7 +149,12 @@ namespace EventSim {
       WireValue* v = values.at(top);
       assert(v != nullptr);
 
-      // Update bits stored in v
+      // TODO: Actually set the value of v to bv
+
+      std::set<CoreIR::Select*> freshSignals;
+      freshSignals.insert(sel);
+      updateSignals(freshSignals);
+      
     }
 
     WireValue* selectField(const std::string& selStr,
