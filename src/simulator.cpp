@@ -271,7 +271,7 @@ namespace EventSim {
 
       std::set<CoreIR::Select*> freshSignals;
 
-      //cout << "Updating " << inst->toString() << " : " << opName << endl;
+      cout << "Updating " << inst->toString() << " : " << opName << endl;
       for (auto selR : sim->getSelf()->getSelects()) {
 
         Select* sel = selR.second;
@@ -289,7 +289,7 @@ namespace EventSim {
 
       return true;
       
-    } else if (opName == "corebit.reg") {
+    } else if ((opName == "corebit.reg") || (opName == "coreir.reg")) {
 
       BitVec oldOut = getBitVec(inst->sel("out"));
       BitVec oldClk = getBitVec(inst->sel("clk"));
@@ -322,11 +322,13 @@ namespace EventSim {
       
       updateInputs(inst);
 
-      
       BitVec clk = getBitVec(inst->sel("clk"));
       BitVec rst = getBitVec(inst->sel("arst"));
 
-      BitVec initVal = inst->getModArgs().at("init")->get<BitVec>();
+      cout << "Getting initval" << endl;
+      BitVector initVal = inst->getModArgs().at("init")->get<BitVector>();
+
+      cout << "initval = " << initVal << endl;
 
       bool updateOnPosedge =
         inst->getModArgs().at("clk_posedge")->get<bool>();
@@ -358,7 +360,30 @@ namespace EventSim {
           
       return !same_representation(oldOut, out);
       
-      assert(false);
+    } else if (opName == "coreir.zext") {
+
+      uint inWidth = inst->getModuleRef()->getGenArgs().at("width_in")->get<int>();
+      uint outWidth = inst->getModuleRef()->getGenArgs().at("width_out")->get<int>();
+    
+      BitVec oldOut = getBitVec(inst->sel("out"));
+
+      updateInputs(inst);
+      BitVec bv1 = getBitVec(inst->sel("in"));      
+
+      assert(((uint) bv1.bitLength()) == inWidth);
+
+      BitVec res(outWidth, 0);
+      for (uint i = 0; i < inWidth; i++) {
+        res.set(i, bv1.get(i));
+      }
+
+      setValueNoUpdate(inst->sel("out"), res);
+
+      return !same_representation(res, oldOut);
+    } else if (opName == "coreir.eq") {
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return l == r;
+        });
     } else {
       cout << "ERROR: Unsupported operation " << opName << endl;
       assert(false);
