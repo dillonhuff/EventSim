@@ -6,8 +6,6 @@ using namespace std;
 namespace EventSim {
 
   void setWireBitVector(const BitVector& bv, WireValue& value) {
-    cout << "Value = " << value.getType() << endl;
-
     assert((value.getType() == WIRE_VALUE_ARRAY) ||
            (value.getType() == WIRE_VALUE_BIT));
 
@@ -78,9 +76,22 @@ namespace EventSim {
       }
 
       // TODO: Update the actual node values
+      set<Wireable*> nodesWhoseOutputChanged;
+      for (auto node : nodesToUpdate) {
+        bool changed = false;
+
+        // Assumes no inout ports
+        if (isa<Instance>(node)) {
+          changed = updateInstance(cast<Instance>(node));
+        }
+
+        if (changed) {
+          nodesWhoseOutputChanged.insert(node);
+        }
+      }
 
       // Add new signals to the fresh queue
-      for (auto node : nodesToUpdate) {
+      for (auto node : nodesWhoseOutputChanged) {
 
         // Assumes no use of inout ports.
         if (isa<Instance>(node)) {
@@ -94,27 +105,38 @@ namespace EventSim {
           }
         }
       }
-
-      // for (auto rSel : receiverSels) {
-
-        
-      //   if (!CoreIR::isa<CoreIR::Instance>(next)) {
-      //     // Set value of interface here?
-      //     cout << "Setting value of " << rSel->toString() << endl;
-      //     continue;
-      //   }
-
-      //   cout << "Setting value of " << rSel->toString() << endl;
-      //   updateInstance(CoreIR::cast<CoreIR::Instance>(next));
-      // }
-
     }
 
     assert(freshSignals.size() == 0);
 
   }
 
-  void EventSimulator::updateInstance(const CoreIR::Instance* const inst) {
+  bool EventSimulator::updateInstance(CoreIR::Instance* const inst) {
+    string opName = getQualifiedOpName(*inst);
+    cout << "Instance type name = " << opName << endl;
+
+    if (opName == "coreir.andr") {
+      BitVec res(1, 1);
+
+      // TODO: Need to add machinery to retrieve the net from a wire
+      BitVec sB = getBitVec(inst->sel("in"));
+
+      cout << "sB = " << sB << endl;
+
+      for (int i = 0; i < sB.bitLength(); i++) {
+        if (sB.get(i) != 1) {
+          res = BitVec(1, 0);
+          break;
+        }
+      }
+
+      Select* outSel = inst->sel("out");
+      cout << "Setting " << outSel->toString() << " to " << res << endl;
+      setValueNoUpdate(outSel, res);
+      return true;
+      
+    }
+    return false;
   }
 
 }

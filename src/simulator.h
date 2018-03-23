@@ -98,8 +98,10 @@ namespace EventSim {
       last_values[self] = defaultWireValue(self);
       values[self] = defaultWireValue(self);
 
-      // TODO: Add all output wire defaults
-      
+      for (auto instR : def->getInstances()) {
+        values[instR.second] = defaultWireValue(instR.second);
+        last_values[instR.second] = defaultWireValue(instR.second);
+      }
     }
 
     WireValue* defaultWireValue(CoreIR::Wireable* const w) {
@@ -137,7 +139,7 @@ namespace EventSim {
       return val;
     }
 
-    void updateInstance(const CoreIR::Instance* const inst);
+    bool updateInstance(CoreIR::Instance* const inst);
 
     void updateSignals(std::set<CoreIR::Select*>& freshSignals);
     
@@ -147,26 +149,26 @@ namespace EventSim {
 
       assert(CoreIR::isa<CoreIR::Select>(s));
 
-      CoreIR::Select* sel = CoreIR::cast<CoreIR::Select>(s);
-      CoreIR::Wireable* top = sel->getTopParent();
+      return setValue(s, bv);
+    }
 
-      std::cout << "Top = " << top->toString() << std::endl;
-      assert(contains_key(top, values));
-
+    void setValueNoUpdate(CoreIR::Wireable* const s, const BitVector& bv) {
       WireValue* v = getWireValue(s); //values.at(top);
       assert(v != nullptr);
 
-      // TODO: Actually set the value of v to bv
-      std::cout << "Setting value of " << name << std::endl;
       setWireBitVector(bv, *v);
-      std::cout << "Setting value of " << name << std::endl;
+    }
 
+    void setValue(CoreIR::Wireable* const s, const BitVector& bv) {
+      setValueNoUpdate(s, bv);
+
+      CoreIR::Select* sel = CoreIR::cast<CoreIR::Select>(s);
       std::set<CoreIR::Select*> freshSignals;
       freshSignals.insert(sel);
       updateSignals(freshSignals);
       
     }
-
+    
     WireValue* selectField(const std::string& selStr,
                            const WireValue* const w) const {
       WireValueType tp = w->getType();
@@ -201,11 +203,17 @@ namespace EventSim {
       return selectField(selStr, parent);
     }
 
+    BitVector getBitVec(CoreIR::Wireable* const w) {
+      WireValue* wv = getWireValue(w);
+      return extractBitVector(*wv);
+    }
+
     BitVector getBitVec(const std::string& name) {
       assert(mod->getDef()->canSel(name));
 
-      WireValue* wv = getWireValue(mod->getDef()->sel(name));
-      return extractBitVector(*wv);
+      CoreIR::Wireable* w = mod->getDef()->sel(name);
+
+      return getBitVec(w);
     }
 
     ~EventSimulator() {
@@ -215,5 +223,4 @@ namespace EventSim {
     }
   };
   
-
 }
