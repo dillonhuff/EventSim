@@ -271,19 +271,23 @@ namespace EventSim {
 
       std::set<CoreIR::Select*> freshSignals;
 
-      cout << "Updating " << inst->toString() << " : " << opName << endl;
+      //cout << "Updating " << inst->toString() << " : " << opName << endl;
       for (auto selR : sim->getSelf()->getSelects()) {
 
         Select* sel = selR.second;
         if (sel->getType()->getDir() == Type::DK_Out) {
-          cout << "\tAdding " << sel->toString() << endl;
-          cout << "\tWith vaule " << sim->getBitVec(sel) << endl;
+          // cout << "\tAdding " << sel->toString() << endl;
+          // cout << "\tWith vaule " << sim->getBitVec(sel->sel("sel")) << endl;
           freshSignals.insert(sel);
         }
       }
       sim->updateSignals(freshSignals);
 
+      //cout << "output = " << sim->getBitVec("self.out") << endl;
+
       setValueNoUpdate(inst, sim->getSelfValue());
+
+      return true;
       
     } else {
       cout << "ERROR: Unsupported operation " << opName << endl;
