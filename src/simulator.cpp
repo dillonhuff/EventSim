@@ -45,16 +45,24 @@ namespace EventSim {
       for (auto rSel : receiverSels) {
         cout << "\tReceives " << rSel->toString() << endl;
         Wireable* top = rSel->getTopParent();
+
         nodesToUpdate.insert(top);
       }
 
-      for (auto node : nodesToUpdate) {
-        cout << "\tChecking outputs of " << node->toString() << endl;
-        for (auto sel : node->getSelects()) {
-          if (sel.second->getType()->getDir() == Type::DirKind::DK_Out) {
-            cout << "\t\tis output " << sel.second->toString() << endl;
+      // TODO: Update the actual node values
 
-            freshSignals.insert(sel.second);
+      // Add new signals to the fresh queue
+      for (auto node : nodesToUpdate) {
+
+        // Assumes no use of inout ports.
+        if (isa<Instance>(node)) {
+          cout << "\tChecking outputs of " << node->toString() << endl;
+          for (auto sel : node->getSelects()) {
+            if (sel.second->getType()->getDir() == Type::DirKind::DK_Out) {
+              cout << "\t\tis output " << sel.second->toString() << endl;
+
+              freshSignals.insert(sel.second);
+            }
           }
         }
       }
