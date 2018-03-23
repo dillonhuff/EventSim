@@ -50,6 +50,7 @@ namespace EventSim {
 
     virtual WireValueType getType() const { return WIRE_VALUE_ARRAY; }
 
+    const WireValue* const elem(const int i) const { return elems[i]; }
     int length() const { return elems.size(); }
   };
 

@@ -16,11 +16,17 @@ namespace EventSim {
       return bv;
     }
 
-    cout << "Value type = " << value.getType() << endl;
+    //cout << "Value type = " << value.getType() << endl;
     assert(value.getType() == WIRE_VALUE_ARRAY);
 
     auto& val = static_cast<const ArrayValue&>(value);
     BitVector bv(val.length(), 0);
+    for (int i = 0; i < val.length(); i++) {
+      auto bi = val.elem(i);
+      assert(bi->getType() == WIRE_VALUE_BIT);
+      auto bib = static_cast<const BitValue* const>(bi);
+      bv.set(i, bib->value());
+    }
 
     return bv;
   }
