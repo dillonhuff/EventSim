@@ -70,6 +70,9 @@ namespace EventSim {
     }
   };
 
+  void copyWireValueOver(WireValue* const receiver,
+                         const WireValue* const source);
+  
   class NamedValue : public WireValue {
   public:
     virtual WireValueType getType() const = 0;
@@ -86,6 +89,24 @@ namespace EventSim {
 
     std::set<WireValue*> wireValues;
 
+    // Problem: How to build this map from wires to the driver
+    // of the net the wire is a member of?
+    // I guess:
+    // Iterate over all instances and ports on self and for
+    // each select in the design: if the select is an output
+    // iterate over all sub-selects. A bit question is: should all
+    // connections be done wire by wire?
+
+    // Nets are inherently a bit-by bit thing, otherwise you
+    // need a hierarchy. For example fi
+    //    a.out   ----> a.in
+    //    a.out.0 ----> b.in.0
+    // there is a "net" {a.out, a.in} and a "net" {a.out.0, b.in.0}
+    // so if you think of {a.out, a.in} as shorthand for:
+    // {a.out.0, a.out.1, ...., a.in.0, a.in.1, ....} Then
+    // a.out.0 is in 2 nets
+    std::map<CoreIR::Wireable*, CoreIR::Wireable*> netmap;
+
   public:
     EventSimulator(CoreIR::Module* const mod_) : mod(mod_) {
       assert(mod != nullptr);
@@ -100,6 +121,9 @@ namespace EventSim {
 
       for (auto instR : def->getInstances()) {
         values[instR.second] = defaultWireValue(instR.second);
+        // Maybe we should set default values only for selects that are
+        // outputs? Then when getBitVec is called get the net associated with
+        // each select?
         last_values[instR.second] = defaultWireValue(instR.second);
       }
     }
@@ -152,8 +176,14 @@ namespace EventSim {
       return setValue(s, bv);
     }
 
+    void setValueNoUpdate(CoreIR::Wireable* const dest, WireValue* const freshValue) {
+      WireValue* receiver = getWireValue(dest);
+
+      copyWireValueOver(receiver, freshValue);
+    }
+
     void setValueNoUpdate(CoreIR::Wireable* const s, const BitVector& bv) {
-      WireValue* v = getWireValue(s); //values.at(top);
+      WireValue* v = getWireValue(s);
       assert(v != nullptr);
 
       setWireBitVector(bv, *v);
@@ -215,6 +245,8 @@ namespace EventSim {
 
       return getBitVec(w);
     }
+
+    void updateInputs(CoreIR::Instance* const inst);
 
     ~EventSimulator() {
       for (auto val : wireValues) {

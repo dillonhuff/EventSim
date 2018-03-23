@@ -5,6 +5,42 @@ using namespace std;
 
 namespace EventSim {
 
+  void copyWireValueOver(WireValue* const receiver,
+                         const WireValue* const source) {
+    assert(receiver->getType() == source->getType());
+
+    if (receiver->getType() == WIRE_VALUE_BIT) {
+      BitValue* const receiverBV =
+        static_cast<BitValue* const>(receiver);
+
+      const BitValue* const sourceBV =
+        static_cast<const BitValue* const>(source);
+
+      receiverBV->setValue(sourceBV->value());
+
+      return;
+    }
+
+    if (receiver->getType() == WIRE_VALUE_ARRAY) {
+      ArrayValue* const receiverArray =
+        static_cast<ArrayValue* const>(receiver);
+
+      const ArrayValue* const sourceArray =
+        static_cast<const ArrayValue* const>(source);
+
+      assert(receiverArray->length() == sourceArray->length());
+
+      for (int i = 0; i < receiverArray->length(); i++) {
+        copyWireValueOver(receiverArray->elemMutable(i),
+                          sourceArray->elem(i));
+      }
+
+      return;
+    }
+
+    assert(false);
+  }
+
   void setWireBitVector(const BitVector& bv, WireValue& value) {
     assert((value.getType() == WIRE_VALUE_ARRAY) ||
            (value.getType() == WIRE_VALUE_BIT));
@@ -111,9 +147,23 @@ namespace EventSim {
 
   }
 
+  void EventSimulator::updateInputs(CoreIR::Instance* const inst) {
+    // Set the values on all instance selects?
+    cout << "Updating " << inst->toString() << endl;
+    for (auto conn : getSourceConnections(inst)) {
+      cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+      Wireable* driver = conn.first;
+      Wireable* receiver = conn.second;
+      WireValue* driverValue = getWireValue(driver);
+      setValueNoUpdate(receiver, driverValue);
+    }
+  }
+
   bool EventSimulator::updateInstance(CoreIR::Instance* const inst) {
     string opName = getQualifiedOpName(*inst);
     cout << "Instance type name = " << opName << endl;
+
+    updateInputs(inst);
 
     if (opName == "coreir.andr") {
       BitVec res(1, 1);
