@@ -11,6 +11,59 @@ using namespace std;
 
 namespace EventSim {
 
+
+  TEST_CASE("D flip flop") {
+    Context* c = newContext();
+    Namespace* common = CoreIRLoadLibrary_commonlib(c);
+
+    Namespace* g = c->getGlobal();
+      
+    Module* dff = c->getModule("corebit.reg");
+    Type* dffType = c->Record({
+        {"IN", c->BitIn()},
+          {"CLK", c->Named("coreir.clkIn")},
+            {"OUT", c->Bit()}
+      });
+
+    Module* dffTest = g->newModuleDecl("dffTest", dffType);
+    ModuleDef* def = dffTest->newModuleDef();
+
+    Wireable* dff0 =
+      def->addInstance("dff0",
+                       dff,
+                       {{"init", Const::make(c, true)}});
+
+    Wireable* self = def->sel("self");
+    def->connect("self.IN", "dff0.in");
+    def->connect("self.CLK", "dff0.clk");
+    def->connect("dff0.out", "self.OUT");
+
+    dffTest->setDef(def);
+
+    c->runPasses({"rungenerators","flattentypes","flatten"});
+
+    EventSimulator state(dffTest);
+    state.setValue("self.IN", BitVec(1, 1));
+
+    state.setValue("self.CLK", BitVec(1, 0));
+    state.setValue("self.CLK", BitVec(1, 1));
+
+    SECTION("After first execute value is 1") {
+      REQUIRE(state.getBitVec("self.OUT") == BitVec(1, 1));
+    }
+
+    state.setValue("self.IN", BitVec(1, 0));
+
+    state.setValue("self.CLK", BitVec(1, 0));
+    state.setValue("self.CLK", BitVec(1, 1));
+
+    SECTION("After second execute value is 0") {
+      REQUIRE(state.getBitVec("self.OUT") == BitVec(1, 0));
+    }
+
+    deleteContext(c);
+  }
+  
   TEST_CASE("andr") {
     Context* c = newContext();
     Namespace* g = c->getGlobal();
@@ -262,29 +315,29 @@ namespace EventSim {
     
   }
 
-  TEST_CASE("Whole CGRA") {
-    Context* c = newContext();
-    Namespace* g = c->getGlobal();
+  // TEST_CASE("Whole CGRA") {
+  //   Context* c = newContext();
+  //   Namespace* g = c->getGlobal();
 
-    CoreIRLoadLibrary_rtlil(c);
+  //   CoreIRLoadLibrary_rtlil(c);
 
-    Module* top;
-    if (!loadFromFile(c,"./test/top.json", &top)) {
-      cout << "Could not Load from json!!" << endl;
-      c->die();
-    }
+  //   Module* top;
+  //   if (!loadFromFile(c,"./test/top.json", &top)) {
+  //     cout << "Could not Load from json!!" << endl;
+  //     c->die();
+  //   }
 
-    c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
+  //   c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
-    cout << "Creating simulator" << endl;
-    EventSimulator sim(top);
-    cout << "Done creating simulator" << endl;
-    sim.setValue("self.config_addr_in", BitVector("32'h15"));
-    cout << "Set config addr " << endl;
+  //   cout << "Creating simulator" << endl;
+  //   EventSimulator sim(top);
+  //   cout << "Done creating simulator" << endl;
+  //   sim.setValue("self.config_addr_in", BitVector("32'h15"));
+  //   cout << "Set config addr " << endl;
 
     
-    deleteContext(c);
-  }
+  //   deleteContext(c);
+  // }
 
   
 }

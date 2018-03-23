@@ -156,6 +156,18 @@ namespace EventSim {
 
       } else if (isBitType(*(w->getType()))) {
         val = new BitValue(bsim::quad_value(QBV_UNKNOWN_VALUE));
+      } else if (CoreIR::isa<CoreIR::NamedType>(w->getType())) {
+
+        CoreIR::NamedType* tp =
+          CoreIR::cast<CoreIR::NamedType>(w->getType());
+        //std::cout << "ERROR: " << w->toString() << " has unsupported named type " << tp->toString() << " with raw type " << tp->getRaw()->toString() << std::endl;
+
+        // Currently we only handle bit types
+        assert(isBitType(*(tp->getRaw())));
+
+        val = new BitValue(bsim::quad_value(QBV_UNKNOWN_VALUE));
+        
+        //assert(false);
       } else {
         std::cout << "ERROR: Unsupported wireable " << w->toString() << std::endl;
         assert(false);

@@ -271,7 +271,7 @@ namespace EventSim {
 
       std::set<CoreIR::Select*> freshSignals;
 
-      cout << "Updating " << inst->toString() << " : " << opName << endl;
+      //cout << "Updating " << inst->toString() << " : " << opName << endl;
       for (auto selR : sim->getSelf()->getSelects()) {
 
         Select* sel = selR.second;
@@ -289,6 +289,31 @@ namespace EventSim {
 
       return true;
       
+    } else if (opName == "corebit.reg") {
+
+      BitVec oldOut = getBitVec(inst->sel("out"));
+      BitVec oldClk = getBitVec(inst->sel("clk"));
+      
+      updateInputs(inst);
+
+      
+      BitVec clk = getBitVec(inst->sel("clk"));
+      bool updateOnPosedge =
+        inst->getModArgs().at("clk_posedge")->get<bool>();
+
+      // TODO: Add x considerations
+      bool posedge = (clk == BitVec(1, 1)) && (oldClk == BitVec(1, 0));
+      bool negedge = (clk == BitVec(1, 0)) && (oldClk == BitVec(1, 1));
+
+      if (updateOnPosedge && posedge) {
+        setValueNoUpdate(inst->sel("out"), getWireValue(inst->sel("in")));
+      } else if (!updateOnPosedge && negedge) {
+        setValueNoUpdate(inst->sel("out"), getWireValue(inst->sel("in")));
+      }
+
+      BitVec out = getBitVec(inst->sel("out"));
+          
+      return !same_representation(oldOut, out);
     } else {
       cout << "ERROR: Unsupported operation " << opName << endl;
       assert(false);
