@@ -119,6 +119,7 @@ namespace EventSim {
         // Assumes no inout ports
         if (isa<Instance>(node)) {
           changed = updateInstance(cast<Instance>(node));
+        } else {
         }
 
         if (changed) {
@@ -147,7 +148,7 @@ namespace EventSim {
 
   }
 
-  void EventSimulator::updateInputs(CoreIR::Instance* const inst) {
+  void EventSimulator::updateInputs(CoreIR::Wireable* const inst) {
     // Set the values on all instance selects?
     cout << "Updating " << inst->toString() << endl;
     for (auto conn : getSourceConnections(inst)) {

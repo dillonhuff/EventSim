@@ -246,7 +246,7 @@ namespace EventSim {
       return getBitVec(w);
     }
 
-    void updateInputs(CoreIR::Instance* const inst);
+    void updateInputs(CoreIR::Wireable* const inst);
 
     ~EventSimulator() {
       for (auto val : wireValues) {
