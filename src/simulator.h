@@ -190,7 +190,24 @@ namespace EventSim {
 
       assert(CoreIR::isa<CoreIR::Select>(s));
 
-      return setValue(s, bv);
+      CoreIR::Select* sel = CoreIR::cast<CoreIR::Select>(s);
+      auto tp = sel->getType();
+
+      std::cout << "Type of " << name << " is " << tp->toString() << std::endl;
+      
+      if (CoreIR::isBitArray(*tp) ||
+          (CoreIR::isBitType(*tp))) {
+        return setValue(s, bv);
+      } else {
+        assert(CoreIR::isa<CoreIR::NamedType>(tp));
+
+        CoreIR::NamedType* ntp = CoreIR::cast<CoreIR::NamedType>(tp);
+
+        assert(CoreIR::isBitArray(*(ntp->getRaw())) ||
+               CoreIR::isBitType(*(ntp->getRaw())));
+
+        return setValue(s, bv);
+      }
     }
 
     void setValueNoUpdate(CoreIR::Wireable* const dest, WireValue* const freshValue) {
@@ -203,6 +220,7 @@ namespace EventSim {
       WireValue* v = getWireValue(s);
       assert(v != nullptr);
 
+      std::cout << "Setting value of " << s->toString() << " to " << bv << std::endl;
       setWireBitVector(bv, *v);
     }
 

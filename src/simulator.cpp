@@ -425,6 +425,12 @@ namespace EventSim {
           return l | r;
         });
       
+    } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
+
+      return updateUnopNode(inst, [](const BitVec& a) {
+          return ~a;
+        });
+
     } else if (opName == "coreir.orr") {
 
       return updateUnopNode(inst, [](const BitVec& sB) {
