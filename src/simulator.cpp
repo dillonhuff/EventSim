@@ -276,7 +276,7 @@ namespace EventSim {
 
       std::set<CoreIR::Select*> freshSignals;
 
-      cout << "Updating " << inst->toString() << " : " << opName << endl;
+      //cout << "Updating " << inst->toString() << " : " << opName << endl;
       for (auto selR : sim->getSelf()->getSelects()) {
 
         Select* sel = selR.second;

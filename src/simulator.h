@@ -220,7 +220,7 @@ namespace EventSim {
       WireValue* v = getWireValue(s);
       assert(v != nullptr);
 
-      std::cout << "Setting value of " << s->toString() << " to " << bv << std::endl;
+      //std::cout << "Setting value of " << s->toString() << " to " << bv << std::endl;
       setWireBitVector(bv, *v);
     }
 
