@@ -425,6 +425,58 @@ namespace EventSim {
           return l | r;
         });
       
+    } else if ((opName == "coreir.xor") || (opName == "corebit.xor")) {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return l ^ r;
+        });
+      
+    } else if (opName == "coreir.shl") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::shl(l, r);
+        });
+
+    } else if (opName == "coreir.ashr") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::ashr(l, r);
+        });
+
+    } else if (opName == "coreir.lshr") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::lshr(l, r);
+        });
+      
+    } else if (opName == "coreir.sub") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::sub_general_width_bv(l, r);
+        });
+
+    } else if (opName == "coreir.mul") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::mul_general_width_bv(l, r);
+        });
+
+    } else if (opName == "coreir.add") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::add_general_width_bv(l, r);
+        });
+      
+    } else if ((opName == "coreir.neq") || (opName == "corebit.neq")) {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return BitVec(1, l != r);
+        });
+      
+    } else if (opName == "coreir.ult") {
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return BitVec(1, l < r);
+        });
     } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
 
       return updateUnopNode(inst, [](const BitVec& a) {
