@@ -291,7 +291,8 @@ namespace EventSim {
 
       setValueNoUpdate(inst, sim->getSelfValue());
 
-      return true;
+      // Add real test of all outputs converging
+      return false;
       
     } else if ((opName == "corebit.reg") || (opName == "coreir.reg")) {
 
@@ -325,6 +326,7 @@ namespace EventSim {
       return updateUnopNode(inst, [](const BitVec& l) {
           return l;
         });
+
     } else if (opName == "coreir.reg_arst") {
 
       BitVec oldOut = getBitVec(inst->sel("out"));
@@ -397,6 +399,7 @@ namespace EventSim {
       setValueNoUpdate(inst->sel("out"), res);
 
       return !same_representation(res, oldOut);
+
     } else if (opName == "coreir.eq") {
       return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
           return BitVec(1, l == r);

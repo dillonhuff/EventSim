@@ -315,7 +315,7 @@ namespace EventSim {
     
   }
 
-  TEST_CASE("Whole CGRA") {
+  TEST_CASE("CGRA PE tile") {
     Context* c = newContext();
     Namespace* g = c->getGlobal();
 
@@ -329,10 +329,11 @@ namespace EventSim {
 
     c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
+    top = c->getModule("global.pe_tile_new_unq1");
     cout << "Creating simulator" << endl;
     EventSimulator sim(top);
     cout << "Done creating simulator" << endl;
-    sim.setValue("self.config_addr_in", BitVector("32'h15"));
+    sim.setValue("self.tile_id", BitVector("32'h15"));
     cout << "Set config addr " << endl;
 
     
