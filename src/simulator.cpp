@@ -267,6 +267,8 @@ namespace EventSim {
     } else if (inst->getModuleRef()->hasDef()) {
 
       // Save outputs of the module
+      std::map<Select*, BitVec> oldOutputs =
+        outputBitVecs(inst);
 
       updateInputs(inst);
 
@@ -291,6 +293,11 @@ namespace EventSim {
 
       setValueNoUpdate(inst, sim->getSelfValue());
 
+      std::map<Select*, BitVec> newOutputs =
+        outputBitVecs(inst);
+
+      assert(newOutputs.size() == oldOutputs.size());
+      
       // Add real test of all outputs converging
       return false;
       
@@ -437,6 +444,13 @@ namespace EventSim {
     }
 
     return false;
+  }
+
+  std::map<Select*, BitVec>
+  outputBitVecs(CoreIR::Instance* const inst) {
+    map<Select*, BitVec> outs;
+
+    return outs;
   }
 
 }

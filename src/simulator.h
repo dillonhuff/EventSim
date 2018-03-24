@@ -322,5 +322,8 @@ namespace EventSim {
       }
     }
   };
+
+  std::map<CoreIR::Select*, CoreIR::BitVec>
+  outputBitVecs(CoreIR::Instance* const inst);
   
 }

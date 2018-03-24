@@ -315,30 +315,30 @@ namespace EventSim {
     
   }
 
-  TEST_CASE("CGRA PE tile") {
-    Context* c = newContext();
-    Namespace* g = c->getGlobal();
+  // TEST_CASE("CGRA PE tile") {
+  //   Context* c = newContext();
+  //   Namespace* g = c->getGlobal();
 
-    CoreIRLoadLibrary_rtlil(c);
+  //   CoreIRLoadLibrary_rtlil(c);
 
-    Module* top;
-    if (!loadFromFile(c,"./test/top.json", &top)) {
-      cout << "Could not Load from json!!" << endl;
-      c->die();
-    }
+  //   Module* top;
+  //   if (!loadFromFile(c,"./test/top.json", &top)) {
+  //     cout << "Could not Load from json!!" << endl;
+  //     c->die();
+  //   }
 
-    c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
+  //   c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
-    top = c->getModule("global.pe_tile_new_unq1");
-    cout << "Creating simulator" << endl;
-    EventSimulator sim(top);
-    cout << "Done creating simulator" << endl;
-    sim.setValue("self.tile_id", BitVector("32'h15"));
-    cout << "Set config addr " << endl;
+  //   top = c->getModule("global.pe_tile_new_unq1");
+  //   cout << "Creating simulator" << endl;
+  //   EventSimulator sim(top);
+  //   cout << "Done creating simulator" << endl;
+  //   sim.setValue("self.tile_id", BitVector("32'h15"));
+  //   cout << "Set config addr " << endl;
 
     
-    deleteContext(c);
-  }
+  //   deleteContext(c);
+  // }
 
   
 }
