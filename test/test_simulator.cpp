@@ -393,11 +393,6 @@ namespace EventSim {
       sim.setValue("self.config_addr", BitVec(32, configAddr));
       sim.setValue("self.config_data", BitVec(32, configData));
 
-      // top->config_addr = configAddr; // Insert config
-      // top->config_data = configData; // Insert data
-      // top->clk_in = 0;
-      // top->eval();
-
       sim.setValue("self.clk_in", BitVec(1, 1));
     }
 
@@ -431,7 +426,6 @@ namespace EventSim {
     sim.setValue("self.in_BUS16_S3_T2", BitVec(16, top_val));
     sim.setValue("self.in_BUS16_S3_T3", BitVec(16, top_val));
     sim.setValue("self.in_BUS16_S3_T4", BitVec(16, top_val));
-
 
     cout << "Done setting inputs" << endl;
     // top->eval();
