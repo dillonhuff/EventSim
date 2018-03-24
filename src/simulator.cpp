@@ -267,7 +267,8 @@ namespace EventSim {
     } else if (inst->getModuleRef()->hasDef()) {
 
       // Save outputs of the module
-      std::map<Select*, BitVec> oldOutputs =
+
+      map<Select*, BitVec> oldOutputs =
         outputBitVecs(inst);
 
       updateInputs(inst);
@@ -277,7 +278,7 @@ namespace EventSim {
 
       std::set<CoreIR::Select*> freshSignals;
 
-      cout << "Updating " << inst->toString() << " : " << opName << endl;
+      //cout << "Updating " << inst->toString() << " : " << opName << endl;
       for (auto selR : sim->getSelf()->getSelects()) {
 
         Select* sel = selR.second;
@@ -289,16 +290,20 @@ namespace EventSim {
       }
       sim->updateSignals(freshSignals);
 
-      //cout << "output = " << sim->getBitVec("self.out") << endl;
-
       setValueNoUpdate(inst, sim->getSelfValue());
 
-      std::map<Select*, BitVec> newOutputs =
+      map<Select*, BitVec> newOutputs =
         outputBitVecs(inst);
 
       assert(newOutputs.size() == oldOutputs.size());
-      
-      // Add real test of all outputs converging
+
+      for (auto out : newOutputs) {
+        assert(contains_key(out.first, oldOutputs));
+        if (!same_representation(out.second, oldOutputs.at(out.first))) {
+          return true;
+        }
+      }
+
       return false;
       
     } else if ((opName == "corebit.reg") || (opName == "coreir.reg")) {
@@ -345,8 +350,8 @@ namespace EventSim {
       BitVec clk = getBitVec(inst->sel("clk"));
       BitVec rst = getBitVec(inst->sel("arst"));
 
-      cout << "Getting initval" << endl;
-      cout << "Init value type = " << inst->getModArgs().at("init")->getValueType()->toString() << endl;
+      // cout << "Getting initval" << endl;
+      // cout << "Init value type = " << inst->getModArgs().at("init")->getValueType()->toString() << endl;
 
       int width = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
@@ -354,7 +359,7 @@ namespace EventSim {
       // work.
       BitVector initVal(width);//= //inst->getModArgs().at("init")->get<BitVector>();
 
-      cout << "initval = " << initVal << endl;
+      //cout << "initval = " << initVal << endl;
 
       bool updateOnPosedge =
         inst->getModArgs().at("clk_posedge")->get<bool>();
@@ -424,6 +429,64 @@ namespace EventSim {
           return l | r;
         });
       
+    } else if ((opName == "coreir.xor") || (opName == "corebit.xor")) {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return l ^ r;
+        });
+      
+    } else if (opName == "coreir.shl") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::shl(l, r);
+        });
+
+    } else if (opName == "coreir.ashr") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::ashr(l, r);
+        });
+
+    } else if (opName == "coreir.lshr") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::lshr(l, r);
+        });
+      
+    } else if (opName == "coreir.sub") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::sub_general_width_bv(l, r);
+        });
+
+    } else if (opName == "coreir.mul") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::mul_general_width_bv(l, r);
+        });
+
+    } else if (opName == "coreir.add") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return bsim::add_general_width_bv(l, r);
+        });
+      
+    } else if ((opName == "coreir.neq") || (opName == "corebit.neq")) {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return BitVec(1, l != r);
+        });
+      
+    } else if (opName == "coreir.ult") {
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return BitVec(1, l < r);
+        });
+    } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
+
+      return updateUnopNode(inst, [](const BitVec& a) {
+          return ~a;
+        });
+
     } else if (opName == "coreir.orr") {
 
       return updateUnopNode(inst, [](const BitVec& sB) {
@@ -446,11 +509,24 @@ namespace EventSim {
     return false;
   }
 
-  std::map<Select*, BitVec>
-  outputBitVecs(CoreIR::Instance* const inst) {
-    map<Select*, BitVec> outs;
+  std::map<CoreIR::Select*, CoreIR::BitVec>
+  EventSimulator::outputBitVecs(CoreIR::Wireable* const inst) {
+    map<Select*, BitVec> outMap;
+    for (auto selR : inst->getSelects()) {
+      Select* sel = selR.second;
+      if (sel->getType()->getDir() == Type::DirKind::DK_Out) {
 
-    return outs;
+        if (isBitType(*(sel->getType())) ||
+            isBitArray(*(sel->getType()))) {
+          outMap.insert({sel, getBitVec(sel)});
+        } else {
+          for (auto sBp : outputBitVecs(sel)) {
+            outMap.insert(sBp);
+          }
+        }
+      }
+    }
+    return outMap;
   }
 
 }
