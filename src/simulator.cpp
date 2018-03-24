@@ -267,7 +267,8 @@ namespace EventSim {
     } else if (inst->getModuleRef()->hasDef()) {
 
       // Save outputs of the module
-
+      map<Select*, BitVec> oldOutputs =
+        outputBitVecs(inst);
       updateInputs(inst);
 
       EventSimulator* sim = submodules[inst];
@@ -287,11 +288,21 @@ namespace EventSim {
       }
       sim->updateSignals(freshSignals);
 
-      //cout << "output = " << sim->getBitVec("self.out") << endl;
-
       setValueNoUpdate(inst, sim->getSelfValue());
 
-      return true;
+      map<Select*, BitVec> newOutputs =
+        outputBitVecs(inst);
+
+      assert(newOutputs.size() == oldOutputs.size());
+
+      for (auto out : newOutputs) {
+        assert(contains_key(out.first, oldOutputs));
+        if (!same_representation(out.second, oldOutputs.at(out.first))) {
+          return true;
+        }
+      }
+
+      return false;
       
     } else if ((opName == "corebit.reg") || (opName == "coreir.reg")) {
 
@@ -434,6 +445,26 @@ namespace EventSim {
     }
 
     return false;
+  }
+
+  std::map<CoreIR::Select*, CoreIR::BitVec>
+  EventSimulator::outputBitVecs(CoreIR::Wireable* const inst) {
+    map<Select*, BitVec> outMap;
+    for (auto selR : inst->getSelects()) {
+      Select* sel = selR.second;
+      if (sel->getType()->getDir() == Type::DirKind::DK_Out) {
+
+        if (isBitType(*(sel->getType())) ||
+            isBitArray(*(sel->getType()))) {
+          outMap.insert({sel, getBitVec(sel)});
+        } else {
+          for (auto sBp : outputBitVecs(sel)) {
+            outMap.insert(sBp);
+          }
+        }
+      }
+    }
+    return outMap;
   }
 
 }

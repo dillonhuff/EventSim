@@ -321,6 +321,10 @@ namespace EventSim {
         delete mod.second;
       }
     }
+
+    std::map<CoreIR::Select*, CoreIR::BitVec>
+    outputBitVecs(CoreIR::Wireable* const inst);
+
   };
   
 }
