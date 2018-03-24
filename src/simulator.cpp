@@ -64,6 +64,10 @@ namespace EventSim {
            (value.getType() == WIRE_VALUE_BIT));
 
     if (value.getType() == WIRE_VALUE_BIT) {
+      if (bv.bitLength() != 1) {
+        cout << "ERROR: setting bit to bit vector " << bv << endl;
+      }
+
       assert(bv.bitLength() == 1);
 
       BitValue& bitVal = static_cast<BitValue&>(value);
@@ -314,6 +318,13 @@ namespace EventSim {
       BitVec out = getBitVec(inst->sel("out"));
           
       return !same_representation(oldOut, out);
+    } else if (opName == "coreir.wrap") {
+
+      // Assuming no wrapping of record or array of array types for now.
+      // Only existing named types are clk and reset
+      return updateUnopNode(inst, [](const BitVec& l) {
+          return l;
+        });
     } else if (opName == "coreir.reg_arst") {
 
       BitVec oldOut = getBitVec(inst->sel("out"));
@@ -326,7 +337,13 @@ namespace EventSim {
       BitVec rst = getBitVec(inst->sel("arst"));
 
       cout << "Getting initval" << endl;
-      BitVector initVal = inst->getModArgs().at("init")->get<BitVector>();
+      cout << "Init value type = " << inst->getModArgs().at("init")->getValueType()->toString() << endl;
+
+      int width = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+
+      // TODO: Add real initilization value later. For now I cant get this to
+      // work.
+      BitVector initVal(width);//= //inst->getModArgs().at("init")->get<BitVector>();
 
       cout << "initval = " << initVal << endl;
 
@@ -382,8 +399,35 @@ namespace EventSim {
       return !same_representation(res, oldOut);
     } else if (opName == "coreir.eq") {
       return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
-          return l == r;
+          return BitVec(1, l == r);
         });
+
+    } else if ((opName == "coreir.and") || (opName == "corebit.and")) {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return l & r;
+        });
+      
+    } else if ((opName == "coreir.or") || (opName == "corebit.or")) {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return l | r;
+        });
+      
+    } else if (opName == "coreir.orr") {
+
+      return updateUnopNode(inst, [](const BitVec& sB) {
+          BitVec res(1, 0);
+          for (int i = 0; i < sB.bitLength(); i++) {
+            if (sB.get(i) == 1) {
+              res = BitVec(1, 1);
+              break;
+            }
+          }
+
+          return res;
+        });
+      
     } else {
       cout << "ERROR: Unsupported operation " << opName << endl;
       assert(false);

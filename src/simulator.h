@@ -297,6 +297,21 @@ namespace EventSim {
       return !same_representation(res, oldOut);
     }
 
+    template<typename F>
+    bool updateUnopNode(CoreIR::Instance* const inst, F f) {
+      CoreIR::BitVec oldOut = getBitVec(inst->sel("out"));
+
+      updateInputs(inst);
+
+      CoreIR::BitVec in0 = getBitVec(inst->sel("in"));
+
+      CoreIR::BitVec res = f(in0);
+
+      setValueNoUpdate(inst->sel("out"), res);
+
+      return !same_representation(res, oldOut);
+    }
+    
     ~EventSimulator() {
       for (auto val : wireValues) {
         delete val;
