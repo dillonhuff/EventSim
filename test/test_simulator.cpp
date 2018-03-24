@@ -394,6 +394,16 @@ namespace EventSim {
       sim.setValue("self.config_data", BitVec(32, configData));
 
       sim.setValue("self.clk_in", BitVec(1, 1));
+
+      cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
+      cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
+
+      cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;
+      cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
+
+      cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
+      cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
+      
     }
 
     cout << "Done configuring PE tile" << endl;
@@ -430,6 +440,9 @@ namespace EventSim {
     cout << "Data0 = " << sim.getBitVec("test_pe$self.data0") << endl;
     cout << "Data1 = " << sim.getBitVec("test_pe$self.data1") << endl;
 
+    cout << "cb0 out = " << sim.getBitVec("cb_data0$self.out") << endl;
+    cout << "cb0 out = " << sim.getBitVec("cb_data1$self.out") << endl;
+    
     cout << "Done setting inputs" << endl;
     // top->eval();
 

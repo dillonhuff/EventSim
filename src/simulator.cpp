@@ -529,4 +529,8 @@ namespace EventSim {
     return outMap;
   }
 
+  // Q: What kinds of facilities would be useful for hardware debugging?
+  // A: Displaying the calculation that lead to a given value?
+  //    Thm prover based suggestions about what would make a given port have its expected value
+
 }
