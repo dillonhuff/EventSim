@@ -343,7 +343,133 @@ namespace EventSim {
     sim.setValue("self.reset", BitVector("1'h0"));
 
     cout << "Reset chip" << endl;
-    
+
+  // Read in config bitstream
+  std::ifstream t("./test/hwmaster_pw2_sixteen.bsa");
+  std::string configBits((std::istreambuf_iterator<char>(t)),
+                         std::istreambuf_iterator<char>());
+
+  std::vector<std::string> strings;
+
+  std::string::size_type pos = 0;
+  std::string::size_type prev = 0;
+  char delimiter = '\n';
+  string str = configBits;
+  while ((pos = str.find(delimiter, prev)) != std::string::npos) {
+    strings.push_back(str.substr(prev, pos - prev));
+    prev = pos + 1;
+  }
+
+  // To get the last substring (or only, if delimiter is not found)
+  strings.push_back(str.substr(prev));
+
+  cout << "Config lines" << endl;
+  for (int i = 0; i < strings.size(); i++) {
+    cout << strings[i] << endl;
+  }
+
+  for (int i = 0; i < strings.size(); i++) {
+
+    sim.setValue("self.clk_in", BitVec(1, 0));
+    cout << "Evaluating " << i << endl;
+
+    string addrStr = strings[i].substr(0, 8);
+
+    unsigned int configAddr;
+    std::stringstream ss;
+    ss << std::hex << addrStr;
+    ss >> configAddr;
+
+    string dataStr = strings[i].substr(9, 18);
+
+    unsigned int configData;
+    std::stringstream ss2;
+    ss2 << std::hex << dataStr;
+    ss2 >> configData;
+
+    cout << "\taddrStr = " << addrStr << endl;
+    cout << "\tdataStr = " << dataStr << endl;
+
+    // top->config_addr = configAddr; // Insert config
+    // top->config_data = configData; // Insert data
+    // top->clk_in = 0;
+    // top->eval();
+
+    sim.setValue("self.clk_in", BitVec(1, 1));
+  }
+
+  // top->clk_in = 0;
+  // top->tile_id = 0;
+  // top->eval();
+
+
+  // top->clk_in = 1;
+  // top->config_addr = 0;
+  // top->config_data = 0;
+
+  // int top_val = 5;
+
+  // top->in_BUS16_S2_T0 = top_val;
+
+  // top->in_BUS16_S0_T0 = top_val;
+  // top->in_BUS16_S0_T1 = top_val;
+  // top->in_BUS16_S0_T2 = top_val;
+  // top->in_BUS16_S0_T3 = top_val;
+  // top->in_BUS16_S0_T4 = top_val;
+  // top->in_BUS16_S1_T0 = top_val;
+  // top->in_BUS16_S1_T1 = top_val;
+  // top->in_BUS16_S1_T2 = top_val;
+  // top->in_BUS16_S1_T3 = top_val;
+  // top->in_BUS16_S1_T4 = top_val;
+  // top->in_BUS16_S2_T0 = top_val;
+  // top->in_BUS16_S2_T1 = top_val;
+  // top->in_BUS16_S2_T2 = top_val;
+  // top->in_BUS16_S2_T3 = top_val;
+  // top->in_BUS16_S2_T4 = top_val;
+  // top->in_BUS16_S3_T0 = top_val;
+  // top->in_BUS16_S3_T1 = top_val;
+  // top->in_BUS16_S3_T2 = top_val;
+  // top->in_BUS16_S3_T3 = top_val;
+  // top->in_BUS16_S3_T4 = top_val;
+  
+  // top->eval();
+
+  // top->clk_in = 0;
+  // top->eval();
+
+  // top->clk_in = 1;
+  // top->eval();
+
+  // top->clk_in = 0;
+  // top->eval();
+
+  // top->clk_in = 1;
+  // top->eval();
+
+  // top->clk_in = 0;
+  // top->eval();
+  
+  // cout << top->out_BUS16_S0_T0 << endl;
+  // cout << top->out_BUS16_S0_T1 << endl;
+  // cout << top->out_BUS16_S0_T2 << endl;
+  // cout << top->out_BUS16_S0_T3 << endl;
+  // cout << top->out_BUS16_S0_T4 << endl;
+  // cout << top->out_BUS16_S1_T0 << endl;
+  // cout << top->out_BUS16_S1_T1 << endl;
+  // cout << top->out_BUS16_S1_T2 << endl;
+  // cout << top->out_BUS16_S1_T3 << endl;
+  // cout << top->out_BUS16_S1_T4 << endl;
+  // cout << top->out_BUS16_S2_T0 << endl;
+  // cout << top->out_BUS16_S2_T1 << endl;
+  // cout << top->out_BUS16_S2_T2 << endl;
+  // cout << top->out_BUS16_S2_T3 << endl;
+  // cout << top->out_BUS16_S2_T4 << endl;
+  // cout << top->out_BUS16_S3_T0 << endl;
+  // cout << top->out_BUS16_S3_T1 << endl;
+  // cout << top->out_BUS16_S3_T2 << endl;
+  // cout << top->out_BUS16_S3_T3 << endl;
+  // cout << top->out_BUS16_S3_T4 << endl;
+  
     deleteContext(c);
   }
 
