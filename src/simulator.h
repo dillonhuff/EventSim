@@ -286,16 +286,33 @@ namespace EventSim {
     }
 
     BitVector getBitVec(CoreIR::Wireable* const w) {
+      
       WireValue* wv = getWireValue(w);
       return extractBitVector(*wv);
     }
 
     BitVector getBitVec(const std::string& name) {
-      assert(mod->getDef()->canSel(name));
 
-      CoreIR::Wireable* w = mod->getDef()->sel(name);
+      CoreIR::SelectPath paths = CoreIR::splitString<CoreIR::SelectPath>(name, '$');
+      assert(paths.size() >= 1);
 
-      return getBitVec(w);
+      int pathInd = 0;
+      EventSimulator* sim = this;
+      while (pathInd < (paths.size() - 1)) {
+        auto subInstance = sim->mod->getDef()->getInstances().at(paths[pathInd]);
+
+        assert(contains_key(subInstance, sim->submodules));
+
+        sim = sim->submodules[subInstance];
+        pathInd++;
+      }
+
+      assert(sim->mod->getDef()->canSel(paths.back()));
+      
+      CoreIR::Wireable* w = sim->mod->getDef()->sel(paths.back());
+
+      return sim->getBitVec(w);
+        
     }
 
     void updateInputs(CoreIR::Wireable* const inst);

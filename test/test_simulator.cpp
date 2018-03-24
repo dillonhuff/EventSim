@@ -427,6 +427,9 @@ namespace EventSim {
     sim.setValue("self.in_BUS16_S3_T3", BitVec(16, top_val));
     sim.setValue("self.in_BUS16_S3_T4", BitVec(16, top_val));
 
+    cout << "Data0 = " << sim.getBitVec("test_pe$self.data0") << endl;
+    cout << "Data1 = " << sim.getBitVec("test_pe$self.data1") << endl;
+
     cout << "Done setting inputs" << endl;
     // top->eval();
 
