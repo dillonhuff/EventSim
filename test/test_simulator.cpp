@@ -492,9 +492,10 @@ namespace EventSim {
 
     cout << "Data0 = " << sim.getBitVec("test_pe$self.data0") << endl;
     cout << "Data1 = " << sim.getBitVec("test_pe$self.data1") << endl;
+    cout << "res   = " << sim.getBitVec("test_pe$self.res") << endl;
 
     cout << "cb0 out = " << sim.getBitVec("cb_data0$self.out") << endl;
-    cout << "cb0 out = " << sim.getBitVec("cb_data1$self.out") << endl;
+    cout << "cb1 out = " << sim.getBitVec("cb_data1$self.out") << endl;
     
     cout << "Done setting inputs" << endl;
     // top->eval();
@@ -502,6 +503,14 @@ namespace EventSim {
     sim.setValue("self.clk_in", BitVec(1, 0));
     sim.setValue("self.clk_in", BitVec(1, 1));
 
+    cout << "Data0     = " << sim.getBitVec("test_pe$self.data0") << endl;
+    cout << "Data1     = " << sim.getBitVec("test_pe$self.data1") << endl;
+    cout << "res       = " << sim.getBitVec("test_pe$self.res") << endl;
+
+    cout << "compa     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_a") << endl;
+    cout << "compb     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_b") << endl;
+    cout << "compr     = " << sim.getBitVec("test_pe$test_pe_comp$self.res") << endl;
+    
     cout << sim.getBitVec("self.out_BUS16_S0_T0") << endl;
     cout << sim.getBitVec("self.out_BUS16_S0_T1") << endl;
     cout << sim.getBitVec("self.out_BUS16_S0_T2") << endl;
