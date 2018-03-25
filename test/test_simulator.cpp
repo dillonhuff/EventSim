@@ -368,6 +368,14 @@ namespace EventSim {
       cout << strings[i] << endl;
     }
 
+    cout << "Source drivers of sb_wide" << endl;
+    set<Select*> sourceDrivers =
+      sim.sourceDrivers(top->getDef()->sel("sb_wide.config_en"));
+    for (auto driver : sourceDrivers) {
+      cout << "\t" << driver->toString() << endl;
+    }
+
+    
     for (int i = 0; i < strings.size(); i++) {
 
       sim.setValue("self.clk_in", BitVec(1, 0));
@@ -395,7 +403,7 @@ namespace EventSim {
 
       sim.setValue("self.clk_in", BitVec(1, 1));
 
-      cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
+      cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;      cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
       cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
 
       cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;

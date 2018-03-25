@@ -529,6 +529,28 @@ namespace EventSim {
     return outMap;
   }
 
+  // Move this to wiring utils
+  std::set<CoreIR::Select*>
+  EventSimulator::sourceDrivers(CoreIR::Wireable* const w) {
+    set<Select*> srcs;
+    vector<Select*> toCheck = getSourceSelects(w);
+
+    while (toCheck.size() > 0) {
+      Select* next = toCheck.back();
+      toCheck.pop_back();
+
+      auto nextSrcs = getSourceSelects(next->getTopParent());
+      if ((next->getTopParent() == mod->getDef()->sel("self")) ||
+          (nextSrcs.size() == 0)) {
+        srcs.insert(next);
+      } else {
+        concat(toCheck, nextSrcs);
+      }
+    }
+    
+    return srcs;
+  }
+
   // Q: What kinds of facilities would be useful for hardware debugging?
   // A: Displaying the calculation that lead to a given value?
   //    Thm prover based suggestions about what would make a given port have its expected value

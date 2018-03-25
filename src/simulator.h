@@ -360,6 +360,7 @@ namespace EventSim {
     std::map<CoreIR::Select*, CoreIR::BitVec>
     outputBitVecs(CoreIR::Wireable* const inst);
 
+    std::set<CoreIR::Select*> sourceDrivers(CoreIR::Wireable* const w);
   };
 
   std::map<CoreIR::Select*, CoreIR::BitVec>
