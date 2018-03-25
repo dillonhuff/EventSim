@@ -131,6 +131,21 @@ namespace EventSim {
             new EventSimulator(instR.second->getModuleRef());
         }
       }
+
+      // Set default values for wires that are not initialized to x
+      for (auto instR : def->getInstances()) {
+        if (CoreIR::getQualifiedOpName(*(instR.second)) == "corebit.const") {
+          bool value = instR.second->getModArgs().at("value")->get<bool>();
+          setValue(instR.second->sel("out"), CoreIR::BitVec(1, value));
+        }
+
+        if (CoreIR::getQualifiedOpName(*(instR.second)) == "coreir.const") {
+          BitVector value =
+            instR.second->getModArgs().at("value")->get<BitVector>();
+          setValue(instR.second->sel("out"), value);
+        }
+
+      }
     }
 
     WireValue* defaultWireValue(CoreIR::Wireable* const w) {
@@ -265,6 +280,9 @@ namespace EventSim {
     
     WireValue* getWireValue(CoreIR::Wireable* const w) const {
       if (!CoreIR::isa<CoreIR::Select>(w)) {
+        if (!contains_key(w, values)) {
+          std::cout << "ERROR: Cannot find " << w->toString() << std::endl;
+        }
         assert(contains_key(w, values));
 
         WireValue* v = values.at(w);

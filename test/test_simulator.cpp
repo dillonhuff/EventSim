@@ -11,6 +11,51 @@ using namespace std;
 
 namespace EventSim {
 
+  TEST_CASE("Compare to constant") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+    
+    Type* cmpConstNType = c->Record({
+        {"in", c->BitIn()},
+          {"out", c->Bit()}
+      });
+
+    Module* cmpConstN = g->newModuleDecl("cmpConstN", cmpConstNType);
+    ModuleDef* def = cmpConstN->newModuleDef();
+
+    Wireable* self = def->sel("self");
+    Wireable* cmp = def->addInstance("eq0", "coreir.eq", {{"width", Const::make(c, 1)}});
+    Wireable* c0 = def->addInstance("c0", "corebit.const", {{"value", Const::make(c,true)}});
+    
+    def->connect(self->sel("in"), cmp->sel("in0")->sel(0));
+    def->connect(c0->sel("out"), cmp->sel("in1")->sel(0));
+    def->connect(cmp->sel("out"), self->sel("out"));
+
+    cmpConstN->setDef(def);
+
+    c->runPasses({"rungenerators","flattentypes","flatten"});
+
+    EventSimulator state(cmpConstN);
+
+    SECTION("constant output is 1") {
+      REQUIRE(state.getBitVec("c0.out") == BitVec(1, 1));
+    }
+
+    SECTION("in == 1") {
+      state.setValue("self.in", BitVec(1, 1));
+
+      REQUIRE(state.getBitVec("self.out") == BitVec(1, 1));
+    }
+
+    SECTION("in == 0") {
+      state.setValue("self.in", BitVec(1, 0));
+      REQUIRE(state.getBitVec("self.out") == BitVec(1, 0));
+    }
+
+    deleteContext(c);
+    
+  }
+
 
   TEST_CASE("D flip flop") {
     Context* c = newContext();
