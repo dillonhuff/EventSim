@@ -406,209 +406,212 @@ namespace EventSim {
 
     sim.setValue("self.clk", BitVec(1, 0));
     sim.setValue("self.clk", BitVec(1, 1));
-    sim.setValue("self.clk", BitVec(1, 0));
     
     sim.setValue("self.config_en", BitVec(1, 0));
     sim.setValue("self.in_3", BitVec(16, 239));
 
+    REQUIRE(sim.getBitVec("self.out") == BitVec(16, 239));
+    
+    sim.setValue("self.config_en", BitVec(1, 1));
+    sim.setValue("self.config_data", BitVec(32, 7));
+
     sim.setValue("self.clk", BitVec(1, 0));
     sim.setValue("self.clk", BitVec(1, 1));
-    sim.setValue("self.clk", BitVec(1, 0));
 
-    // cout << "All instances " << endl;
-    // for (auto inst : top->getDef()->getInstances()) {
-    //   cout << "\t" << inst.first << endl;
-    // }
+    sim.setValue("self.in_7", BitVec(16, 3));
 
-    cout << "Config resister value " <<
-      sim.getBitVec("__DOLLAR__procdff__DOLLAR__23.Q") << endl;
-    
-    cout << "After configuring Connect box" << endl;
-    sim.printInstances("coreir.reg");
-    sim.printInstances("coreir.reg_arst");
+    REQUIRE(sim.getBitVec("self.out") == BitVec(16, 3));
 
-    REQUIRE(sim.getBitVec("self.out") == BitVec(16, 239));
   }
 
-  // TEST_CASE("CGRA PE tile") {
-  //   Context* c = newContext();
-  //   Namespace* g = c->getGlobal();
+  TEST_CASE("CGRA PE tile") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
 
-  //   CoreIRLoadLibrary_rtlil(c);
+    CoreIRLoadLibrary_rtlil(c);
 
-  //   Module* top;
-  //   if (!loadFromFile(c,"./test/top.json", &top)) {
-  //     cout << "Could not Load from json!!" << endl;
-  //     c->die();
-  //   }
+    Module* top;
+    if (!loadFromFile(c,"./test/top.json", &top)) {
+      cout << "Could not Load from json!!" << endl;
+      c->die();
+    }
 
-  //   top = c->getModule("global.pe_tile_new_unq1");
+    top = c->getModule("global.pe_tile_new_unq1");
 
-  //   c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
+    c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
-  //   cout << "Creating simulator" << endl;
-  //   EventSimulator sim(top);
-  //   cout << "Done creating simulator" << endl;
-  //   sim.setValue("self.tile_id", BitVector("16'h15"));
+    cout << "Creating simulator" << endl;
+    EventSimulator sim(top);
+    cout << "Done creating simulator" << endl;
+    sim.setValue("self.tile_id", BitVector("16'h15"));
 
-  //   cout << "Set tile_id" << endl;
+    cout << "Set tile_id" << endl;
 
-  //   sim.setValue("self.reset", BitVector("1'h0"));
-  //   sim.setValue("self.reset", BitVector("1'h1"));
-  //   sim.setValue("self.reset", BitVector("1'h0"));
-
-  //   cout << "Reset chip" << endl;
-
-  //   // Read in config bitstream
-  //   std::ifstream t("./test/hwmaster_pw2_sixteen.bsa");
-  //   std::string configBits((std::istreambuf_iterator<char>(t)),
-  //                          std::istreambuf_iterator<char>());
-
-  //   std::vector<std::string> strings;
-
-  //   std::string::size_type pos = 0;
-  //   std::string::size_type prev = 0;
-  //   char delimiter = '\n';
-  //   string str = configBits;
-  //   while ((pos = str.find(delimiter, prev)) != std::string::npos) {
-  //     strings.push_back(str.substr(prev, pos - prev));
-  //     prev = pos + 1;
-  //   }
-
-  //   // To get the last substring (or only, if delimiter is not found)
-  //   strings.push_back(str.substr(prev));
-
-  //   cout << "Config lines" << endl;
-  //   for (int i = 0; i < strings.size(); i++) {
-  //     cout << strings[i] << endl;
-  //   }
-
-  //   cout << "Source drivers of sb_wide" << endl;
-  //   set<Select*> sourceDrivers =
-  //     sim.sourceDrivers(top->getDef()->sel("sb_wide.config_en"));
-  //   for (auto driver : sourceDrivers) {
-  //     cout << "\t" << driver->toString() << endl;
-  //   }
+    cout << "All register values before reset" << endl;
+    //sim.printInstances("coreir.reg");
+    sim.printInstances("coreir.reg_arst");
+    
+    sim.setValue("self.reset", BitVector("1'h0"));
+    sim.setValue("self.reset", BitVector("1'h1"));
+    sim.setValue("self.reset", BitVector("1'h0"));
 
     
-  //   for (int i = 0; i < strings.size(); i++) {
+    cout << "Reset chip" << endl;
+    
+    cout << "All register values after reset" << endl;
+    //sim.printInstances("coreir.reg");
+    sim.printInstances("coreir.reg_arst");
 
-  //     sim.setValue("self.clk_in", BitVec(1, 0));
-  //     cout << "Evaluating " << i << endl;
+    // // Read in config bitstream
+    // std::ifstream t("./test/hwmaster_pw2_sixteen.bsa");
+    // std::string configBits((std::istreambuf_iterator<char>(t)),
+    //                        std::istreambuf_iterator<char>());
 
-  //     string addrStr = strings[i].substr(0, 8);
+    // std::vector<std::string> strings;
 
-  //     unsigned int configAddr;
-  //     std::stringstream ss;
-  //     ss << std::hex << addrStr;
-  //     ss >> configAddr;
+    // std::string::size_type pos = 0;
+    // std::string::size_type prev = 0;
+    // char delimiter = '\n';
+    // string str = configBits;
+    // while ((pos = str.find(delimiter, prev)) != std::string::npos) {
+    //   strings.push_back(str.substr(prev, pos - prev));
+    //   prev = pos + 1;
+    // }
 
-  //     string dataStr = strings[i].substr(9, 18);
+    // // To get the last substring (or only, if delimiter is not found)
+    // strings.push_back(str.substr(prev));
 
-  //     unsigned int configData;
-  //     std::stringstream ss2;
-  //     ss2 << std::hex << dataStr;
-  //     ss2 >> configData;
+    // cout << "Config lines" << endl;
+    // for (int i = 0; i < strings.size(); i++) {
+    //   cout << strings[i] << endl;
+    // }
 
-  //     cout << "\taddrStr = " << addrStr << endl;
-  //     cout << "\tdataStr = " << dataStr << endl;
+    // cout << "Source drivers of sb_wide" << endl;
+    // set<Select*> sourceDrivers =
+    //   sim.sourceDrivers(top->getDef()->sel("sb_wide.config_en"));
+    // for (auto driver : sourceDrivers) {
+    //   cout << "\t" << driver->toString() << endl;
+    // }
 
-  //     sim.setValue("self.config_addr", BitVec(32, configAddr));
-  //     sim.setValue("self.config_data", BitVec(32, configData));
+    
+    // for (int i = 0; i < strings.size(); i++) {
 
-  //     sim.setValue("self.clk_in", BitVec(1, 1));
+    //   sim.setValue("self.clk_in", BitVec(1, 0));
+    //   cout << "Evaluating " << i << endl;
 
-  //     cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;      cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
-  //     cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
+    //   string addrStr = strings[i].substr(0, 8);
 
-  //     cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;
-  //     cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
+    //   unsigned int configAddr;
+    //   std::stringstream ss;
+    //   ss << std::hex << addrStr;
+    //   ss >> configAddr;
 
-  //     cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
-  //     cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
+    //   string dataStr = strings[i].substr(9, 18);
 
-  //     cout << "All register values" << endl;
-  //     sim.printInstances("coreir.reg");
-  //     sim.printInstances("coreir.reg_arst");
+    //   unsigned int configData;
+    //   std::stringstream ss2;
+    //   ss2 << std::hex << dataStr;
+    //   ss2 >> configData;
+
+    //   cout << "\taddrStr = " << addrStr << endl;
+    //   cout << "\tdataStr = " << dataStr << endl;
+
+    //   sim.setValue("self.config_addr", BitVec(32, configAddr));
+    //   sim.setValue("self.config_data", BitVec(32, configData));
+
+    //   sim.setValue("self.clk_in", BitVec(1, 1));
+
+    //   cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;      cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
+    //   cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
+
+    //   cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;
+    //   cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
+
+    //   cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
+    //   cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
+
+    //   cout << "All register values" << endl;
+    //   sim.printInstances("coreir.reg");
+    //   sim.printInstances("coreir.reg_arst");
       
-  //   }
+    // }
 
-  //   cout << "Done configuring PE tile" << endl;
+    // cout << "Done configuring PE tile" << endl;
 
-  //   sim.setValue("self.config_addr", BitVec(32, 0));
-  //   sim.setValue("self.clk_in", BitVec(1, 0));
+    // sim.setValue("self.config_addr", BitVec(32, 0));
+    // sim.setValue("self.clk_in", BitVec(1, 0));
 
-  //   sim.setValue("self.clk_in", BitVec(1, 1));
-  //   int top_val = 5;
+    // sim.setValue("self.clk_in", BitVec(1, 1));
+    // int top_val = 5;
 
-  //   sim.setValue("self.in_BUS16_S2_T0", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S2_T0", BitVec(16, top_val));
 
-  //   sim.setValue("self.in_BUS16_S0_T0", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S0_T1", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S0_T2", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S0_T3", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S0_T4", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S1_T0", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S1_T1", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S1_T2", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S1_T3", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S1_T4", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S2_T0", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S2_T1", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S2_T2", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S2_T3", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S2_T4", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S3_T0", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S3_T1", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S3_T2", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S3_T3", BitVec(16, top_val));
-  //   sim.setValue("self.in_BUS16_S3_T4", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S0_T0", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S0_T1", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S0_T2", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S0_T3", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S0_T4", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S1_T0", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S1_T1", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S1_T2", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S1_T3", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S1_T4", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S2_T0", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S2_T1", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S2_T2", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S2_T3", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S2_T4", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S3_T0", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S3_T1", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S3_T2", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S3_T3", BitVec(16, top_val));
+    // sim.setValue("self.in_BUS16_S3_T4", BitVec(16, top_val));
 
-  //   cout << "Data0 = " << sim.getBitVec("test_pe$self.data0") << endl;
-  //   cout << "Data1 = " << sim.getBitVec("test_pe$self.data1") << endl;
-  //   cout << "res   = " << sim.getBitVec("test_pe$self.res") << endl;
+    // cout << "Data0 = " << sim.getBitVec("test_pe$self.data0") << endl;
+    // cout << "Data1 = " << sim.getBitVec("test_pe$self.data1") << endl;
+    // cout << "res   = " << sim.getBitVec("test_pe$self.res") << endl;
 
-  //   cout << "cb0 out = " << sim.getBitVec("cb_data0$self.out") << endl;
-  //   cout << "cb1 out = " << sim.getBitVec("cb_data1$self.out") << endl;
+    // cout << "cb0 out = " << sim.getBitVec("cb_data0$self.out") << endl;
+    // cout << "cb1 out = " << sim.getBitVec("cb_data1$self.out") << endl;
     
-  //   cout << "Done setting inputs" << endl;
+    // cout << "Done setting inputs" << endl;
 
-  //   // top->eval();
+    // // top->eval();
 
-  //   sim.setValue("self.clk_in", BitVec(1, 0));
-  //   sim.setValue("self.clk_in", BitVec(1, 1));
+    // sim.setValue("self.clk_in", BitVec(1, 0));
+    // sim.setValue("self.clk_in", BitVec(1, 1));
 
-  //   cout << "Data0     = " << sim.getBitVec("test_pe$self.data0") << endl;
-  //   cout << "Data1     = " << sim.getBitVec("test_pe$self.data1") << endl;
-  //   cout << "res       = " << sim.getBitVec("test_pe$self.res") << endl;
+    // cout << "Data0     = " << sim.getBitVec("test_pe$self.data0") << endl;
+    // cout << "Data1     = " << sim.getBitVec("test_pe$self.data1") << endl;
+    // cout << "res       = " << sim.getBitVec("test_pe$self.res") << endl;
 
-  //   cout << "compa     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_a") << endl;
-  //   cout << "compb     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_b") << endl;
-  //   cout << "compr     = " << sim.getBitVec("test_pe$test_pe_comp$self.res") << endl;
+    // cout << "compa     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_a") << endl;
+    // cout << "compb     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_b") << endl;
+    // cout << "compr     = " << sim.getBitVec("test_pe$test_pe_comp$self.res") << endl;
     
-  //   cout << sim.getBitVec("self.out_BUS16_S0_T0") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S0_T1") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S0_T2") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S0_T3") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S0_T4") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S1_T0") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S1_T1") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S1_T2") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S1_T3") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S1_T4") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S2_T0") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S2_T1") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S2_T2") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S2_T3") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S2_T4") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S3_T0") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S3_T1") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S3_T2") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S3_T3") << endl;
-  //   cout << sim.getBitVec("self.out_BUS16_S3_T4") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S0_T0") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S0_T1") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S0_T2") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S0_T3") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S0_T4") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S1_T0") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S1_T1") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S1_T2") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S1_T3") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S1_T4") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S2_T0") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S2_T1") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S2_T2") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S2_T3") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S2_T4") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S3_T0") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S3_T1") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S3_T2") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S3_T3") << endl;
+    // cout << sim.getBitVec("self.out_BUS16_S3_T4") << endl;
   
-  //   deleteContext(c);
-  // }
+    // deleteContext(c);
+  }
 
   
 }
