@@ -352,11 +352,19 @@ namespace EventSim {
       // cout << "Getting initval" << endl;
       // cout << "Init value type = " << inst->getModArgs().at("init")->getValueType()->toString() << endl;
 
-      int width = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+      // int width = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
       // TODO: Add real initilization value later. For now I cant get this to
       // work.
-      BitVector initVal(width);//= //inst->getModArgs().at("init")->get<BitVector>();
+      auto modArgs = inst->getModArgs();
+
+      // cout << "Module args" << endl;
+      // for (auto arg : modArgs) {
+      //   cout << "\t" << arg.first << " -> " << arg.second->toString() << " : " << arg.second->getKind() << endl;
+      // }
+
+      Value* initArg = modArgs.at("init");
+      BitVector initVal = modArgs.at("init")->get<BitVector>();
 
       //cout << "initval = " << initVal << endl;
 
