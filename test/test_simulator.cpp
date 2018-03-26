@@ -11,6 +11,52 @@ using namespace std;
 
 namespace EventSim {
 
+  std::vector<std::pair<unsigned int, unsigned int> >
+  loadBitStream(const std::string& fileName) {
+    //std::ifstream t("./test/hwmaster_pw2_sixteen.bsa");
+    std::ifstream t(fileName);
+    std::string configBits((std::istreambuf_iterator<char>(t)),
+                           std::istreambuf_iterator<char>());
+
+    std::vector<std::string> strings;
+
+    std::string::size_type pos = 0;
+    std::string::size_type prev = 0;
+    char delimiter = '\n';
+    string str = configBits;
+    while ((pos = str.find(delimiter, prev)) != std::string::npos) {
+      strings.push_back(str.substr(prev, pos - prev));
+      prev = pos + 1;
+    }
+
+    // To get the last substring (or only, if delimiter is not found)
+    strings.push_back(str.substr(prev));
+
+    vector<pair<unsigned int, unsigned int> > configValues;
+    cout << "Config lines" << endl;
+    for (int i = 0; i < strings.size(); i++) {
+      cout << strings[i] << endl;
+
+      string addrStr = strings[i].substr(0, 8);
+
+      unsigned int configAddr;
+      std::stringstream ss;
+      ss << std::hex << addrStr;
+      ss >> configAddr;
+
+      string dataStr = strings[i].substr(9, 18);
+
+      unsigned int configData;
+      std::stringstream ss2;
+      ss2 << std::hex << dataStr;
+      ss2 >> configData;
+
+      configValues.push_back({configAddr, configData});
+    }
+
+    return configValues;
+  }
+
   TEST_CASE("Compare to constant") {
     Context* c = newContext();
     Namespace* g = c->getGlobal();
@@ -378,28 +424,12 @@ namespace EventSim {
 
     c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
-    cout << "Creating simulator" << endl;
     EventSimulator sim(top);
-    cout << "Done creating simulator" << endl;
-
-    cout << "Config resister value " <<
-      sim.getBitVec("__DOLLAR__procdff__DOLLAR__23.Q") << endl;
 
     sim.setValue("self.reset", BitVec(1, 0));
-
-    cout << "Config resister value " <<
-      sim.getBitVec("__DOLLAR__procdff__DOLLAR__23.Q") << endl;
-    
     sim.setValue("self.reset", BitVec(1, 1));
-
-    cout << "Config resister value " <<
-      sim.getBitVec("__DOLLAR__procdff__DOLLAR__23.Q") << endl;
-
     sim.setValue("self.reset", BitVec(1, 0));
 
-    cout << "Config resister value " <<
-      sim.getBitVec("__DOLLAR__procdff__DOLLAR__23.Q") << endl;
-    
     sim.setValue("self.config_en", BitVec(1, 1));
     sim.setValue("self.config_data", BitVec(32, 3));
     sim.setValue("self.config_addr", BitVec(32, 0));
@@ -438,8 +468,10 @@ namespace EventSim {
 
     top = c->getModule("global.pe_tile_new_unq1");
 
-    c->runPasses({"rungenerators", "flatten", "split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
+    c->runPasses({"rungenerators", "packconnections"}); //, "flatten", "split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
+    auto configValues = loadBitStream("./test/hwmaster_pw2_sixteen.bsa");
+    
     cout << "Creating simulator" << endl;
     EventSimulator sim(top);
     cout << "Done creating simulator" << endl;
@@ -447,75 +479,20 @@ namespace EventSim {
 
     cout << "Set tile_id" << endl;
 
-    //cout << "All register values before reset" << endl;
-    //sim.printInstances("coreir.reg");
-    //sim.printInstances("coreir.reg_arst");
-    
     sim.setValue("self.reset", BitVector("1'h0"));
     sim.setValue("self.reset", BitVector("1'h1"));
     sim.setValue("self.reset", BitVector("1'h0"));
-
     
     cout << "Reset chip" << endl;
     
-    //cout << "All register values after reset" << endl;
-    //sim.printInstances("coreir.reg");
-    //sim.printInstances("coreir.reg_arst");
-
-    // Read in config bitstream
-    std::ifstream t("./test/hwmaster_pw2_sixteen.bsa");
-    std::string configBits((std::istreambuf_iterator<char>(t)),
-                           std::istreambuf_iterator<char>());
-
-    std::vector<std::string> strings;
-
-    std::string::size_type pos = 0;
-    std::string::size_type prev = 0;
-    char delimiter = '\n';
-    string str = configBits;
-    while ((pos = str.find(delimiter, prev)) != std::string::npos) {
-      strings.push_back(str.substr(prev, pos - prev));
-      prev = pos + 1;
-    }
-
-    // To get the last substring (or only, if delimiter is not found)
-    strings.push_back(str.substr(prev));
-
-    cout << "Config lines" << endl;
-    for (int i = 0; i < strings.size(); i++) {
-      cout << strings[i] << endl;
-    }
-
-    // cout << "Source drivers of sb_wide" << endl;
-    // set<Select*> sourceDrivers =
-    //   sim.sourceDrivers(top->getDef()->sel("sb_wide.config_en"));
-    // for (auto driver : sourceDrivers) {
-    //   cout << "\t" << driver->toString() << endl;
-    // }
-
-    
-    for (int i = 0; i < strings.size(); i++) {
+    for (int i = 0; i < configValues.size(); i++) {
 
       sim.setValue("self.clk_in", BitVec(1, 0));
 
       cout << "Evaluating " << i << endl;
 
-      string addrStr = strings[i].substr(0, 8);
-
-      unsigned int configAddr;
-      std::stringstream ss;
-      ss << std::hex << addrStr;
-      ss >> configAddr;
-
-      string dataStr = strings[i].substr(9, 18);
-
-      unsigned int configData;
-      std::stringstream ss2;
-      ss2 << std::hex << dataStr;
-      ss2 >> configData;
-
-      cout << "\taddrStr = " << addrStr << endl;
-      cout << "\tdataStr = " << dataStr << endl;
+      unsigned int configAddr = configValues[i].first;
+      unsigned int configData = configValues[i].second;
 
       sim.setValue("self.config_addr", BitVec(32, configAddr));
       sim.setValue("self.config_data", BitVec(32, configData));
@@ -523,20 +500,18 @@ namespace EventSim {
       sim.setValue("self.clk_in", BitVec(1, 0));      
       sim.setValue("self.clk_in", BitVec(1, 1));
 
-      // cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;
-      // cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
-      // cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
-      //cout << "sb wide reg     = " << sim.getBitVec("sb_wide$__DOLLAR__procdff__DOLLAR__2251.Q") << endl;
+      cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;
+      cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
+      cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
+      cout << "sb wide reg     = " << sim.getBitVec("sb_wide$__DOLLAR__procdff__DOLLAR__1409.Q") << endl;
 
-      // cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;
-      // cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
-      //cout << "cb0 config_reg  = " << sim.getBitVec("cb_data0$__DOLLAR__procdff__DOLLAR__2309.Q") << endl;
+      cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;
+      cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
+      cout << "cb0 config_reg  = " << sim.getBitVec("cb_data0$__DOLLAR__procdff__DOLLAR__1412.Q") << endl;
 
-      // cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
-      // cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
-      //cout << "cb1 config_reg  = " << sim.getBitVec("cb_data1$__DOLLAR__procdff__DOLLAR__2309.Q") << endl;
-
-
+      cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
+      cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
+      cout << "cb1 config_reg  = " << sim.getBitVec("cb_data1$__DOLLAR__procdff__DOLLAR__1412.Q") << endl;
 
       // cout << "All register values" << endl;
       // sim.printInstances("coreir.reg");
@@ -575,27 +550,25 @@ namespace EventSim {
     sim.setValue("self.in_BUS16_S3_T3", BitVec(16, top_val));
     sim.setValue("self.in_BUS16_S3_T4", BitVec(16, top_val));
 
-    // cout << "Data0 = " << sim.getBitVec("test_pe$self.data0") << endl;
-    // cout << "Data1 = " << sim.getBitVec("test_pe$self.data1") << endl;
-    // cout << "res   = " << sim.getBitVec("test_pe$self.res") << endl;
+    cout << "Data0 = " << sim.getBitVec("test_pe$self.data0") << endl;
+    cout << "Data1 = " << sim.getBitVec("test_pe$self.data1") << endl;
+    cout << "res   = " << sim.getBitVec("test_pe$self.res") << endl;
 
-    // cout << "cb0 out = " << sim.getBitVec("cb_data0$self.out") << endl;
-    // cout << "cb1 out = " << sim.getBitVec("cb_data1$self.out") << endl;
+    cout << "cb0 out = " << sim.getBitVec("cb_data0$self.out") << endl;
+    cout << "cb1 out = " << sim.getBitVec("cb_data1$self.out") << endl;
     
     cout << "Done setting inputs" << endl;
-
-    // top->eval();
 
     sim.setValue("self.clk_in", BitVec(1, 0));
     sim.setValue("self.clk_in", BitVec(1, 1));
 
-    // cout << "Data0     = " << sim.getBitVec("test_pe$self.data0") << endl;
-    // cout << "Data1     = " << sim.getBitVec("test_pe$self.data1") << endl;
-    // cout << "res       = " << sim.getBitVec("test_pe$self.res") << endl;
+    cout << "Data0     = " << sim.getBitVec("test_pe$self.data0") << endl;
+    cout << "Data1     = " << sim.getBitVec("test_pe$self.data1") << endl;
+    cout << "res       = " << sim.getBitVec("test_pe$self.res") << endl;
 
-    // cout << "compa     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_a") << endl;
-    // cout << "compb     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_b") << endl;
-    // cout << "compr     = " << sim.getBitVec("test_pe$test_pe_comp$self.res") << endl;
+    cout << "compa     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_a") << endl;
+    cout << "compb     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_b") << endl;
+    cout << "compr     = " << sim.getBitVec("test_pe$test_pe_comp$self.res") << endl;
     
     cout << sim.getBitVec("self.out_BUS16_S0_T0") << endl;
     cout << sim.getBitVec("self.out_BUS16_S0_T1") << endl;
