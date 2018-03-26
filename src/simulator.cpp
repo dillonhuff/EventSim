@@ -313,7 +313,6 @@ namespace EventSim {
       
       updateInputs(inst);
 
-      
       BitVec clk = getBitVec(inst->sel("clk"));
       bool updateOnPosedge =
         inst->getModArgs().at("clk_posedge")->get<bool>();
@@ -372,6 +371,8 @@ namespace EventSim {
       bool negedgeClk = (clk == BitVec(1, 0)) && (oldClk == BitVec(1, 1));
 
       if (updateOnPosedge && posedgeClk) {
+        cout << "Clocking VALUE OF " << inst->toString() << endl;
+        cout << "value of input = " << getBitVec(inst->sel("in")) << endl;
         setValueNoUpdate(inst->sel("out"), getWireValue(inst->sel("in")));
       } else if (!updateOnPosedge && negedgeClk) {
         setValueNoUpdate(inst->sel("out"), getWireValue(inst->sel("in")));
@@ -382,6 +383,7 @@ namespace EventSim {
       
       // Reset has priority over clock
       if (resetOnPosedge && posedgeRst) {
+        cout << "RESETING VALUE OF " << inst->toString() << endl;
         setValueNoUpdate(inst->sel("out"), initVal);
       } else if (!resetOnPosedge && negedgeRst) {
         setValueNoUpdate(inst->sel("out"), initVal);
@@ -555,4 +557,16 @@ namespace EventSim {
   // A: Displaying the calculation that lead to a given value?
   //    Thm prover based suggestions about what would make a given port have its expected value
 
+  void EventSimulator::printInstances(const std::string& instanceName) {
+    for (auto instanceR : mod->getDef()->getInstances()) {
+      auto inst = instanceR.second;
+      if (getQualifiedOpName(*inst) == instanceName) {
+        cout << "\t" << inst->toString() << " = " << *getWireValue(inst) << endl;
+      }
+    }
+
+    for (auto subMod : submodules) {
+      subMod.second->printInstances(instanceName);
+    }
+  }
 }

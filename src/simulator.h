@@ -16,9 +16,12 @@ namespace EventSim {
   class WireValue {
   public:
     virtual WireValueType getType() const = 0;
+    virtual std::string toString() const = 0;
 
     virtual ~WireValue() {}
   };
+
+  
 
   class RecordValue : public WireValue {
     std::vector<std::pair<std::string, WireValue*> > fields;
@@ -30,6 +33,18 @@ namespace EventSim {
 
     const std::vector<std::pair<std::string, WireValue*> >& getFields() const {
       return fields;
+    }
+
+    virtual std::string toString() const {
+      std::string res = "{";
+      for (int i = 0; i < (int) fields.size(); i++) {
+        res += fields[i].first + " : " + fields[i].second->toString();
+        if (i < (fields.size() - 1)) {
+          res += ", ";
+        }
+      }
+      res += "}";
+      return res;
     }
 
     virtual WireValueType getType() const { return WIRE_VALUE_RECORD; }
@@ -72,6 +87,18 @@ namespace EventSim {
 
     virtual WireValueType getType() const { return WIRE_VALUE_ARRAY; }
 
+    virtual std::string toString() const {
+      std::string res = "[";
+      for (int i = 0; i < (int) elems.size(); i++) {
+        res += elem(i)->toString();
+        if (i < (elems.size() - 1)) {
+          res += ", ";
+        }
+      }
+      res += "]";
+      return res;
+    }
+    
     const WireValue* const elem(const int i) const { return elems[i]; }
 
     WireValue* const elemMutable(const int i) const { return elems[i]; }
@@ -87,10 +114,28 @@ namespace EventSim {
 
     bsim::quad_value value() const { return bitVal; }
 
+    virtual std::string toString() const {
+      if (bitVal.is_binary()) {
+        return std::to_string(bitVal.binary_value());
+      } else if (bitVal.is_unknown()) {
+        return "x";
+      } else {
+        assert(bitVal.is_high_impedance());
+        return "z";
+      }
+    }
+
     void setValue(const bsim::quad_value value) {
       bitVal = value;
     }
   };
+
+  static inline std::ostream& operator<<(std::ostream& out, const WireValue& w) {
+    out << w.toString();
+
+    return out;
+  }
+
 
   void copyWireValueOver(WireValue* const receiver,
                          const WireValue* const source);
@@ -379,6 +424,8 @@ namespace EventSim {
     outputBitVecs(CoreIR::Wireable* const inst);
 
     std::set<CoreIR::Select*> sourceDrivers(CoreIR::Wireable* const w);
+
+    void printInstances(const std::string& instanceName);
   };
 
   std::map<CoreIR::Select*, CoreIR::BitVec>
