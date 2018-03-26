@@ -278,7 +278,7 @@ namespace EventSim {
 
       std::set<CoreIR::Select*> freshSignals;
 
-      //cout << "Updating " << inst->toString() << " : " << opName << endl;
+      // cout << "Updating " << inst->toString() << " : " << opName << endl;
       for (auto selR : sim->getSelf()->getSelects()) {
 
         Select* sel = selR.second;
@@ -371,10 +371,14 @@ namespace EventSim {
       bool negedgeClk = (clk == BitVec(1, 0)) && (oldClk == BitVec(1, 1));
 
       if (updateOnPosedge && posedgeClk) {
-        cout << "Clocking VALUE OF " << inst->toString() << endl;
+        cout << "Posedge Clocking VALUE OF " << inst->toString() << endl;
         cout << "value of input = " << getBitVec(inst->sel("in")) << endl;
         setValueNoUpdate(inst->sel("out"), getWireValue(inst->sel("in")));
       } else if (!updateOnPosedge && negedgeClk) {
+
+        // cout << "Negedge Clocking VALUE OF " << inst->toString() << endl;
+        // cout << "value of input = " << getBitVec(inst->sel("in")) << endl;
+
         setValueNoUpdate(inst->sel("out"), getWireValue(inst->sel("in")));
       }
 
@@ -383,7 +387,7 @@ namespace EventSim {
       
       // Reset has priority over clock
       if (resetOnPosedge && posedgeRst) {
-        cout << "RESETING VALUE OF " << inst->toString() << endl;
+        // cout << "RESETING VALUE OF " << inst->toString() << endl;
         setValueNoUpdate(inst->sel("out"), initVal);
       } else if (!resetOnPosedge && negedgeRst) {
         setValueNoUpdate(inst->sel("out"), initVal);
@@ -401,6 +405,7 @@ namespace EventSim {
       BitVec oldOut = getBitVec(inst->sel("out"));
 
       updateInputs(inst);
+
       BitVec bv1 = getBitVec(inst->sel("in"));      
 
       assert(((uint) bv1.bitLength()) == inWidth);

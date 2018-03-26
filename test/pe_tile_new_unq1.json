@@ -7388,7 +7388,7 @@
           ["cb_bit2.in_9","sb_1b.out_2_4"],
           ["cb_bit2.out","test_pe.bit2"],
           ["cb_bit2.reset","self.reset"],
-          ["cb_cg_en.clk","__DOLLAR__and__DOLLAR____DOT____FORWARD_SLASH__pe_tile_new_unq1__DOT__v__COLON__687__DOLLAR__47.Y.0"],
+          ["cb_cg_en.clk","self.clk_in"],
           ["cb_cg_en.config_en","__DOLLAR__procmux__DOLLAR__1274.Y.0"],
           ["cb_cg_en.in_0","self.in_BUS1_S1_T0"],
           ["cb_cg_en.in_1","self.in_BUS1_S1_T1"],

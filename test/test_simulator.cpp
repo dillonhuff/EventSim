@@ -471,18 +471,23 @@ namespace EventSim {
     c->runPasses({"rungenerators", "packconnections"}); //, "flatten", "split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
     auto configValues = loadBitStream("./test/hwmaster_pw2_sixteen.bsa");
-    
-    cout << "Creating simulator" << endl;
+
+    // NOTE: Unknown value on cg_en causes problems?
     EventSimulator sim(top);
-    cout << "Done creating simulator" << endl;
     sim.setValue("self.tile_id", BitVector("16'h15"));
+
+    sim.setValue("self.in_BUS1_S1_T0", BitVector("1'h1"));
+    sim.setValue("self.in_BUS1_S1_T1", BitVector("1'h1"));
+    sim.setValue("self.in_BUS1_S1_T2", BitVector("1'h1"));
+    sim.setValue("self.in_BUS1_S1_T3", BitVector("1'h1"));
+    sim.setValue("self.in_BUS1_S1_T4", BitVector("1'h1"));
 
     cout << "Set tile_id" << endl;
 
     sim.setValue("self.reset", BitVector("1'h0"));
     sim.setValue("self.reset", BitVector("1'h1"));
     sim.setValue("self.reset", BitVector("1'h0"));
-    
+
     cout << "Reset chip" << endl;
     
     for (int i = 0; i < configValues.size(); i++) {
@@ -500,6 +505,15 @@ namespace EventSim {
       sim.setValue("self.clk_in", BitVec(1, 0));      
       sim.setValue("self.clk_in", BitVec(1, 1));
 
+
+      // Im not sure clock gating is actually working correctly. How is clk
+      // being set?
+      cout << "cg en           = " << sim.getBitVec("cb_cg_en$self.out") << endl;
+      cout << "cb3     cfg_en  = " << sim.getBitVec("cb_cg_en$self.config_en") << endl;
+      cout << "cb3 addr        = " << sim.getBitVec("cb_cg_en$self.config_addr") << endl;
+      cout << "cb3 data        = " << sim.getBitVec("cb_cg_en$self.config_data") << endl;
+      
+      cout << "opcode register = " << sim.getBitVec("__DOLLAR__procdff__DOLLAR__1415.Q") << endl;
       cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;
       cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
       cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
@@ -509,6 +523,7 @@ namespace EventSim {
       cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
       cout << "cb0 config_reg  = " << sim.getBitVec("cb_data0$__DOLLAR__procdff__DOLLAR__1412.Q") << endl;
 
+      cout << "cb1 clk         = " << sim.getBitVec("cb_data1$self.clk") << endl;
       cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
       cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
       cout << "cb1 config_reg  = " << sim.getBitVec("cb_data1$__DOLLAR__procdff__DOLLAR__1412.Q") << endl;
