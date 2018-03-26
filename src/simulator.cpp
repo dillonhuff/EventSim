@@ -565,7 +565,9 @@ namespace EventSim {
       }
     }
 
+
     for (auto subMod : submodules) {
+      cout << "In submodule " << subMod.first->toString() << endl;
       subMod.second->printInstances(instanceName);
     }
   }
