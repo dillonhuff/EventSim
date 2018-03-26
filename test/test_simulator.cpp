@@ -431,14 +431,14 @@ namespace EventSim {
     CoreIRLoadLibrary_rtlil(c);
 
     Module* top;
-    if (!loadFromFile(c,"./test/top.json", &top)) {
+    if (!loadFromFile(c,"./test/pe_tile_new_unq1.json", &top)) {
       cout << "Could not Load from json!!" << endl;
       c->die();
     }
 
     top = c->getModule("global.pe_tile_new_unq1");
 
-    c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
+    c->runPasses({"rungenerators", "flatten", "split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
     cout << "Creating simulator" << endl;
     EventSimulator sim(top);
@@ -486,12 +486,12 @@ namespace EventSim {
       cout << strings[i] << endl;
     }
 
-    cout << "Source drivers of sb_wide" << endl;
-    set<Select*> sourceDrivers =
-      sim.sourceDrivers(top->getDef()->sel("sb_wide.config_en"));
-    for (auto driver : sourceDrivers) {
-      cout << "\t" << driver->toString() << endl;
-    }
+    // cout << "Source drivers of sb_wide" << endl;
+    // set<Select*> sourceDrivers =
+    //   sim.sourceDrivers(top->getDef()->sel("sb_wide.config_en"));
+    // for (auto driver : sourceDrivers) {
+    //   cout << "\t" << driver->toString() << endl;
+    // }
 
     
     for (int i = 0; i < strings.size(); i++) {
@@ -523,18 +523,18 @@ namespace EventSim {
       sim.setValue("self.clk_in", BitVec(1, 0));      
       sim.setValue("self.clk_in", BitVec(1, 1));
 
-      cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;
-      cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
-      cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
-      cout << "sb wide reg     = " << sim.getBitVec("sb_wide$__DOLLAR__procdff__DOLLAR__2251.Q") << endl;
+      // cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;
+      // cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
+      // cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
+      //cout << "sb wide reg     = " << sim.getBitVec("sb_wide$__DOLLAR__procdff__DOLLAR__2251.Q") << endl;
 
-      cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;
-      cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
-      cout << "cb0 config_reg  = " << sim.getBitVec("cb_data0$__DOLLAR__procdff__DOLLAR__2309.Q") << endl;
+      // cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;
+      // cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
+      //cout << "cb0 config_reg  = " << sim.getBitVec("cb_data0$__DOLLAR__procdff__DOLLAR__2309.Q") << endl;
 
-      cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
-      cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
-      cout << "cb1 config_reg  = " << sim.getBitVec("cb_data1$__DOLLAR__procdff__DOLLAR__2309.Q") << endl;
+      // cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
+      // cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
+      //cout << "cb1 config_reg  = " << sim.getBitVec("cb_data1$__DOLLAR__procdff__DOLLAR__2309.Q") << endl;
 
 
 
@@ -575,12 +575,12 @@ namespace EventSim {
     sim.setValue("self.in_BUS16_S3_T3", BitVec(16, top_val));
     sim.setValue("self.in_BUS16_S3_T4", BitVec(16, top_val));
 
-    cout << "Data0 = " << sim.getBitVec("test_pe$self.data0") << endl;
-    cout << "Data1 = " << sim.getBitVec("test_pe$self.data1") << endl;
-    cout << "res   = " << sim.getBitVec("test_pe$self.res") << endl;
+    // cout << "Data0 = " << sim.getBitVec("test_pe$self.data0") << endl;
+    // cout << "Data1 = " << sim.getBitVec("test_pe$self.data1") << endl;
+    // cout << "res   = " << sim.getBitVec("test_pe$self.res") << endl;
 
-    cout << "cb0 out = " << sim.getBitVec("cb_data0$self.out") << endl;
-    cout << "cb1 out = " << sim.getBitVec("cb_data1$self.out") << endl;
+    // cout << "cb0 out = " << sim.getBitVec("cb_data0$self.out") << endl;
+    // cout << "cb1 out = " << sim.getBitVec("cb_data1$self.out") << endl;
     
     cout << "Done setting inputs" << endl;
 
@@ -589,13 +589,13 @@ namespace EventSim {
     sim.setValue("self.clk_in", BitVec(1, 0));
     sim.setValue("self.clk_in", BitVec(1, 1));
 
-    cout << "Data0     = " << sim.getBitVec("test_pe$self.data0") << endl;
-    cout << "Data1     = " << sim.getBitVec("test_pe$self.data1") << endl;
-    cout << "res       = " << sim.getBitVec("test_pe$self.res") << endl;
+    // cout << "Data0     = " << sim.getBitVec("test_pe$self.data0") << endl;
+    // cout << "Data1     = " << sim.getBitVec("test_pe$self.data1") << endl;
+    // cout << "res       = " << sim.getBitVec("test_pe$self.res") << endl;
 
-    cout << "compa     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_a") << endl;
-    cout << "compb     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_b") << endl;
-    cout << "compr     = " << sim.getBitVec("test_pe$test_pe_comp$self.res") << endl;
+    // cout << "compa     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_a") << endl;
+    // cout << "compb     = " << sim.getBitVec("test_pe$test_pe_comp$self.op_b") << endl;
+    // cout << "compr     = " << sim.getBitVec("test_pe$test_pe_comp$self.res") << endl;
     
     cout << sim.getBitVec("self.out_BUS16_S0_T0") << endl;
     cout << sim.getBitVec("self.out_BUS16_S0_T1") << endl;
