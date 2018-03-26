@@ -5,3 +5,4 @@ Makefile
 all-tests
 cmake_install.cmake
 test/top.json
+test/__DOLLAR__paramod__BACKSLASH__test_debug_reg__BACKSLASH__DataWidth__EQUALS__1.json
