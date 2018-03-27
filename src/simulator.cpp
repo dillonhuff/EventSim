@@ -514,7 +514,7 @@ namespace EventSim {
       return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
           return BitVec(1, l != r);
         });
-      
+
     } else if (opName == "coreir.ult") {
       return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
           return BitVec(1, l < r);
@@ -524,7 +524,7 @@ namespace EventSim {
       return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
           return BitVec(1, !(l > r));
         });
-      
+
     } else if (opName == "coreir.uge") {
 
       return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {

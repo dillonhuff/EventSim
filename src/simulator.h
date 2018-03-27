@@ -10,6 +10,7 @@ namespace EventSim {
     WIRE_VALUE_RECORD,
     WIRE_VALUE_ARRAY,
     WIRE_VALUE_BIT,
+    WIRE_VALUE_BIT_VECTOR,
     WIRE_VALUE_NAMED
   };
 
@@ -24,25 +25,27 @@ namespace EventSim {
   
 
   class RecordValue : public WireValue {
-    std::vector<std::pair<std::string, WireValue*> > fields;
+    //std::vector<std::pair<std::string, WireValue*> > fields;
+    std::map<std::string, WireValue*> fields;
 
   public:
 
-    RecordValue(const std::vector<std::pair<std::string, WireValue*> >& fields_) :
+    RecordValue(const std::map<std::string, WireValue*>& fields_) :
       fields(fields_) {}
 
-    const std::vector<std::pair<std::string, WireValue*> >& getFields() const {
+    //const std::vector<std::pair<std::string, WireValue*> >& getFields() const {
+    const std::map<std::string, WireValue*>& getFields() const {
       return fields;
     }
 
     virtual std::string toString() const {
       std::string res = "{";
-      for (int i = 0; i < (int) fields.size(); i++) {
-        res += fields[i].first + " : " + fields[i].second->toString();
-        if (i < (fields.size() - 1)) {
-          res += ", ";
-        }
-      }
+      // for (int i = 0; i < (int) fields.size(); i++) {
+      //   res += fields[i].first + " : " + fields[i].second->toString();
+      //   if (i < (fields.size() - 1)) {
+      //     res += ", ";
+      //   }
+      // }
       res += "}";
       return res;
     }
@@ -51,20 +54,24 @@ namespace EventSim {
 
     void setFieldValue(const std::string& fieldName,
                        WireValue* wv) {
-      bool found = false;
-      std::vector<std::pair<std::string, WireValue*> > fresh_fields;
+      //bool found = false;
+      //std::vector<std::pair<std::string, WireValue*> > fresh_fields;
 
-      for (int i = 0; i < ((int) fields.size()); i++) {
-        if (fields[i].first == fieldName) {
-          fresh_fields.push_back({fields[i].first, wv});
-          found = true;
-        } else {
-          fresh_fields.push_back(fields[i]);
-        }
-      }
+      
+      // for (int i = 0; i < ((int) fields.size()); i++) {
+      //   if (fields[i].first == fieldName) {
+      //     fresh_fields.push_back({fields[i].first, wv});
+      //     found = true;
+      //   } else {
+      //     fresh_fields.push_back(fields[i]);
+      //   }
+      // }
 
-      assert(found);
-      fields = fresh_fields;
+      fields[fieldName] = wv;
+
+        //assert(found);
+
+      //fields = fresh_fields;
     }
 
     WireValue* getFieldValue(const std::string& fieldName) const {
@@ -77,6 +84,30 @@ namespace EventSim {
       std::cout << "ERROR: Record does not contain field " << fieldName << std::endl;
       assert(false);
     }
+  };
+
+  class BitVectorValue : public WireValue {
+    BitVector bv;
+
+  public:
+    BitVectorValue(const BitVector& bv_) : bv(bv_) {}
+
+    BitVector getBitVec() const { return bv; }
+
+    virtual WireValueType getType() const { return WIRE_VALUE_BIT_VECTOR; }
+
+    virtual std::string toString() const {
+      // std::string res = "[";
+      // for (int i = 0; i < (int) elems.size(); i++) {
+      //   res += elem(i)->toString();
+      //   if (i < (elems.size() - 1)) {
+      //     res += ", ";
+      //   }
+      // }
+      // res += "]";
+      return "BIT_VECTOR_IMPLEMENT";
+    }
+
   };
 
   class ArrayValue : public WireValue {
@@ -275,12 +306,22 @@ namespace EventSim {
     
     WireValue* defaultWireValue(CoreIR::Wireable* const w) {
       WireValue* val = nullptr;
-      if (w->getType()->getKind() == CoreIR::Type::TK_Record) {
+      if (isBitArray(*(w->getType()))) {
 
-        std::vector<std::pair<std::string, WireValue*> > fields;
+        CoreIR::ArrayType* arrTp = CoreIR::cast<CoreIR::ArrayType>(w->getType());
+        std::string xStr = "";
+        for (int i = 0; i < (int) arrTp->getLen(); i++) {
+          xStr += "x";
+        }
+        return new BitVectorValue(BitVector(arrTp->getLen(), xStr));
+
+      } else if (w->getType()->getKind() == CoreIR::Type::TK_Record) {
+
+        //std::vector<std::pair<std::string, WireValue*> > fields;
+        std::map<std::string, WireValue*> fields;
         CoreIR::RecordType* tp = CoreIR::cast<CoreIR::RecordType>(w->getType());
         for (auto field : tp->getFields()) {
-          fields.push_back({field, defaultWireValue(w->sel(field))});
+          fields.insert({field, defaultWireValue(w->sel(field))});
         }
         val = new RecordValue(fields);
         
@@ -388,6 +429,12 @@ namespace EventSim {
         return r->getFieldValue(selStr);
       }
 
+      // if (tp == WIRE_VALUE_BIT_VECTOR) {
+      //   const BitVectorValue* const r =
+      //     static_cast<const BitVectorValue* const>(w);
+      //   return r->getBitVector.get(std::stoi(selStr));
+      // }
+      
       if (tp == WIRE_VALUE_ARRAY) {
         const ArrayValue* const r = static_cast<const ArrayValue* const>(w);
         return r->elemMutable(std::stoi(selStr));
