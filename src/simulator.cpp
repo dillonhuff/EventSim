@@ -124,7 +124,8 @@ namespace EventSim {
       //cout << "Updates from " << next->toString() << endl;
 
       // Update bits stored in v
-      auto receiverSels = getReceiverSelects(next);
+      //auto receiverSels = getReceiverSelects(next);
+      auto receiverSels = allReceiverSelects(next);
       set<Wireable*> nodesToUpdate;
       for (auto rSel : receiverSels) {
         //cout << "\tReceives " << rSel->toString() << endl;
@@ -174,7 +175,9 @@ namespace EventSim {
   void EventSimulator::updateInputs(CoreIR::Wireable* const inst) {
     // Set the values on all instance selects?
     //cout << "Updating " << inst->toString() << endl;
-    for (auto conn : getSourceConnections(inst)) {
+
+    // More than 20% of the time in larger simulations is spent here.
+    for (auto conn : allSourceConnections(inst)) { //getSourceConnections(inst)) {
       //cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
       Wireable* driver = conn.first;
       Wireable* receiver = conn.second;

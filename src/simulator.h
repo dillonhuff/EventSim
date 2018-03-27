@@ -160,7 +160,36 @@ namespace EventSim {
     CoreIR::Instance* instanceBeingSimulated;
     EventSimulator* container;
 
+    std::map<CoreIR::Wireable*, std::vector<CoreIR::Connection> > sourceConnectionCache;
+    std::map<CoreIR::Wireable*, std::vector<CoreIR::Select*> > receiverSelectsCache;
+
+
   public:
+
+    const std::vector<CoreIR::Connection>&
+    allSourceConnections(CoreIR::Wireable* const w) {
+      if (contains_key(w, sourceConnectionCache)) {
+        return sourceConnectionCache.at(w);
+      }
+
+      auto conns = getSourceConnections(w);
+      sourceConnectionCache.insert({w, conns});
+
+      return sourceConnectionCache.at(w);
+    }
+
+    const std::vector<CoreIR::Select*>&
+    allReceiverSelects(CoreIR::Wireable* const w) {
+      if (contains_key(w, receiverSelectsCache)) {
+        return receiverSelectsCache.at(w);
+      }
+
+      auto receivers = getReceiverSelects(w);
+      receiverSelectsCache.insert({w, receivers});
+
+      return receiverSelectsCache.at(w);
+    }
+    
     EventSimulator(CoreIR::Module* const mod_) :
       EventSimulator(mod_, nullptr, nullptr) {
     }
