@@ -605,6 +605,11 @@ namespace EventSim {
     cout << sim.getBitVec("self.out_BUS16_S3_T2") << endl;
     cout << sim.getBitVec("self.out_BUS16_S3_T3") << endl;
     cout << sim.getBitVec("self.out_BUS16_S3_T4") << endl;
+
+    REQUIRE(sim.getBitVec("self.out_BUS16_S0_T0") == BitVec(16, top_val*2));
+    REQUIRE(sim.getBitVec("self.out_BUS16_S3_T1") == BitVec(16, top_val*2));
+    REQUIRE(sim.getBitVec("self.out_BUS16_S3_T2") == BitVec(16, top_val*2));
+    REQUIRE(sim.getBitVec("self.out_BUS16_S3_T3") == BitVec(16, top_val*2));
   
     deleteContext(c);
   }
