@@ -422,7 +422,7 @@ namespace EventSim {
 
     assert(top != nullptr);
 
-    c->runPasses({"rungenerators","split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
+    c->runPasses({"rungenerators", "split-inouts","delete-unused-inouts","deletedeadinstances","add-dummy-inputs", "packconnections"});
 
     EventSimulator sim(top);
 

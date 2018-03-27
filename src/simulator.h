@@ -157,8 +157,17 @@ namespace EventSim {
 
     std::map<CoreIR::Instance*, EventSimulator*> submodules;
 
+    CoreIR::Instance* instanceBeingSimulated;
+    EventSimulator* container;
+
   public:
-    EventSimulator(CoreIR::Module* const mod_) : mod(mod_) {
+    EventSimulator(CoreIR::Module* const mod_) :
+      EventSimulator(mod_, nullptr, nullptr) {
+    }
+
+    EventSimulator(CoreIR::Module* const mod_,
+                   CoreIR::Instance* const instanceBeingSimulated_,
+                   EventSimulator* const container_) : mod(mod_), instanceBeingSimulated(instanceBeingSimulated_), container(container_) {
       assert(mod != nullptr);
       assert(mod->hasDef());
 
@@ -173,7 +182,7 @@ namespace EventSim {
 
         if (instR.second->getModuleRef()->hasDef()) {
           submodules[instR.second] =
-            new EventSimulator(instR.second->getModuleRef());
+            new EventSimulator(instR.second->getModuleRef(), instR.second, this);
         }
       }
 
@@ -193,6 +202,14 @@ namespace EventSim {
       }
     }
 
+    EventSimulator* getContainer() const {
+      return container;
+    }
+
+    CoreIR::Instance* getInstanceBeingSimulated() const {
+      return instanceBeingSimulated;
+    }
+    
     WireValue* defaultWireValue(CoreIR::Wireable* const w) {
       WireValue* val = nullptr;
       if (w->getType()->getKind() == CoreIR::Type::TK_Record) {

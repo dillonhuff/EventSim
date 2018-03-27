@@ -356,15 +356,35 @@ namespace EventSim {
 
       // TODO: Add real initilization value later. For now I cant get this to
       // work.
-      auto modArgs = inst->getModArgs();
+      //auto modArgs = inst->getModArgs();
 
       // cout << "Module args" << endl;
       // for (auto arg : modArgs) {
       //   cout << "\t" << arg.first << " -> " << arg.second->toString() << " : " << arg.second->getKind() << endl;
       // }
 
-      Value* initArg = modArgs.at("init");
-      BitVector initVal = modArgs.at("init")->get<BitVector>();
+      //Value* initArg = modArgs.at("init");
+      Value* initValueArg = inst->getModArgs().at("init");
+      //cout << "initValueArg kind = " << initValueArg->getKind() << endl;
+      BitVector initVal(1, 1);
+      if (initValueArg->getKind() == Value::ValueKind::VK_Arg) {
+        //ModuleDef* def = inst->getContainer();
+        //Module* mod = def->getModule();
+        //initVal = mod->getModParams().at("init")->get<BitVector>();
+
+        // Maybe the thing to do here is save a pointer in the simulator
+        // back to 
+        //cout << "Symbolic init value contained in " << mod->toString() << endl;
+
+        Instance* beingSimulated = getInstanceBeingSimulated();
+        assert(beingSimulated != nullptr);
+
+        //cout << "Instance being simulated = " << beingSimulated->toString();
+
+        initVal = beingSimulated->getModArgs().at("init")->get<BitVector>();
+      } else {
+        initVal = inst->getModArgs().at("init")->get<BitVector>();
+      }
 
       //cout << "initval = " << initVal << endl;
 
