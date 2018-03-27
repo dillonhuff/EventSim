@@ -174,10 +174,18 @@ namespace EventSim {
       auto def = mod->getDef();
       CoreIR::Wireable* self = def->sel("self");
 
+      if (container == nullptr) {
+        std::cout << "Initializing " << mod->getName() << std::endl;
+      }
       // Add interface default values
       values[self] = defaultWireValue(self);
 
       for (auto instR : def->getInstances()) {
+
+        if (container == nullptr) {
+          std::cout << "Initializing " << instR.first << std::endl;
+        }
+
         values[instR.second] = defaultWireValue(instR.second);
 
         if (instR.second->getModuleRef()->hasDef()) {
@@ -186,8 +194,18 @@ namespace EventSim {
         }
       }
 
+      if (container == nullptr) {
+        std::cout << "Done setting X values " << std::endl;
+      }
+      
       // Set default values for wires that are not initialized to x
+      int numInitialized = 0;
       for (auto instR : def->getInstances()) {
+
+        if (container == nullptr) {
+          std::cout << "Initializing instance # " << numInitialized << ": " << instR.first << ", type = " << CoreIR::getQualifiedOpName(*(instR.second)) << std::endl;
+        }
+
         if (CoreIR::getQualifiedOpName(*(instR.second)) == "corebit.const") {
           bool value = instR.second->getModArgs().at("value")->get<bool>();
           setValue(instR.second->sel("out"), CoreIR::BitVec(1, value));
@@ -196,8 +214,24 @@ namespace EventSim {
         if (CoreIR::getQualifiedOpName(*(instR.second)) == "coreir.const") {
           BitVector value =
             instR.second->getModArgs().at("value")->get<BitVector>();
+
+          if (container == nullptr) {
+            std::cout << "\tSetting const value" << std::endl;
+          }
+
           setValue(instR.second->sel("out"), value);
+
+          if (container == nullptr) {
+            std::cout << "\tDone setting const value" << std::endl;
+          }
+          
         }
+
+        if (container == nullptr) {
+          std::cout << "Done instance # " << numInitialized << ": " << instR.first << ", type = " << CoreIR::getQualifiedOpName(*(instR.second)) << std::endl;
+        }
+        
+        numInitialized++;
 
       }
     }
@@ -307,6 +341,8 @@ namespace EventSim {
       CoreIR::Select* sel = CoreIR::cast<CoreIR::Select>(s);
       std::set<CoreIR::Select*> freshSignals;
       freshSignals.insert(sel);
+
+      
       updateSignals(freshSignals);
       
     }

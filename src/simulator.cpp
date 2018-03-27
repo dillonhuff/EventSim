@@ -516,12 +516,30 @@ namespace EventSim {
       return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
           return BitVec(1, l < r);
         });
+    } else if (opName == "coreir.ule") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return BitVec(1, !(l > r));
+        });
+      
+    } else if (opName == "coreir.uge") {
+
+      return updateBinopNode(inst, [](const BitVec& l, const BitVec& r) {
+          return BitVec(1, l >= r);
+        });
+
     } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
 
       return updateUnopNode(inst, [](const BitVec& a) {
           return ~a;
         });
 
+    } else if ((opName == "coreir.mem") ||
+               (opName == "global.input_sr_unq1") ||
+               (opName == "global.output_sr_unq1")) {
+      // TODO: FIX THIS WITH REAL MEM IMPLEMENTATION!!!
+
+      return false;
     } else if (opName == "coreir.orr") {
 
       return updateUnopNode(inst, [](const BitVec& sB) {
