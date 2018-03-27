@@ -499,34 +499,36 @@ namespace EventSim {
       unsigned int configAddr = configValues[i].first;
       unsigned int configData = configValues[i].second;
 
-      sim.setValue("self.config_addr", BitVec(32, configAddr));
-      sim.setValue("self.config_data", BitVec(32, configData));
+      sim.setValues({{"self.config_addr", BitVec(32, configAddr)},
+            {"self.config_data", BitVec(32, configData)}});
+          //   {"self.clk_in", BitVec(1, 1)}});
 
-      sim.setValue("self.clk_in", BitVec(1, 0));      
+      // sim.setValue("self.config_addr", BitVec(32, configAddr));
+      // sim.setValue("self.config_data", BitVec(32, configData));
+
       sim.setValue("self.clk_in", BitVec(1, 1));
-
 
       // Im not sure clock gating is actually working correctly. How is clk
       // being set?
-      cout << "cg en           = " << sim.getBitVec("cb_cg_en$self.out") << endl;
-      cout << "cb3     cfg_en  = " << sim.getBitVec("cb_cg_en$self.config_en") << endl;
-      cout << "cb3 addr        = " << sim.getBitVec("cb_cg_en$self.config_addr") << endl;
-      cout << "cb3 data        = " << sim.getBitVec("cb_cg_en$self.config_data") << endl;
+      // cout << "cg en           = " << sim.getBitVec("cb_cg_en$self.out") << endl;
+      // cout << "cb3     cfg_en  = " << sim.getBitVec("cb_cg_en$self.config_en") << endl;
+      // cout << "cb3 addr        = " << sim.getBitVec("cb_cg_en$self.config_addr") << endl;
+      // cout << "cb3 data        = " << sim.getBitVec("cb_cg_en$self.config_data") << endl;
       
-      cout << "opcode register = " << sim.getBitVec("__DOLLAR__procdff__DOLLAR__1415.Q") << endl;
-      cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;
-      cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
-      cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
-      cout << "sb wide reg     = " << sim.getBitVec("sb_wide$__DOLLAR__procdff__DOLLAR__1409.Q") << endl;
+      // cout << "opcode register = " << sim.getBitVec("__DOLLAR__procdff__DOLLAR__1415.Q") << endl;
+      // cout << "sbw config_en   = " << sim.getBitVec("sb_wide.config_en") << endl;
+      // cout << "sbw config_en   = " << sim.getBitVec("sb_wide$self.config_en") << endl;
+      // cout << "sbw config_data = " << sim.getBitVec("sb_wide$self.config_data") << endl;
+      // cout << "sb wide reg     = " << sim.getBitVec("sb_wide$__DOLLAR__procdff__DOLLAR__1409.Q") << endl;
 
-      cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;
-      cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
-      cout << "cb0 config_reg  = " << sim.getBitVec("cb_data0$__DOLLAR__procdff__DOLLAR__1412.Q") << endl;
+      // cout << "cb0 config_en   = " << sim.getBitVec("cb_data0$self.config_en") << endl;
+      // cout << "cb0 config_data = " << sim.getBitVec("cb_data0$self.config_data") << endl;
+      // cout << "cb0 config_reg  = " << sim.getBitVec("cb_data0$__DOLLAR__procdff__DOLLAR__1412.Q") << endl;
 
-      cout << "cb1 clk         = " << sim.getBitVec("cb_data1$self.clk") << endl;
-      cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
-      cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
-      cout << "cb1 config_reg  = " << sim.getBitVec("cb_data1$__DOLLAR__procdff__DOLLAR__1412.Q") << endl;
+      // cout << "cb1 clk         = " << sim.getBitVec("cb_data1$self.clk") << endl;
+      // cout << "cb1 config_en   = " << sim.getBitVec("cb_data1$self.config_en") << endl;
+      // cout << "cb1 config_data = " << sim.getBitVec("cb_data1$self.config_data") << endl;
+      // cout << "cb1 config_reg  = " << sim.getBitVec("cb_data1$__DOLLAR__procdff__DOLLAR__1412.Q") << endl;
 
       // cout << "All register values" << endl;
       // sim.printInstances("coreir.reg");
@@ -614,5 +616,4 @@ namespace EventSim {
     deleteContext(c);
   }
 
-  
 }

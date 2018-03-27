@@ -399,8 +399,8 @@ namespace EventSim {
       bool negedgeClk = (clk == BitVec(1, 0)) && (oldClk == BitVec(1, 1));
 
       if (updateOnPosedge && posedgeClk) {
-        cout << "Posedge Clocking VALUE OF " << inst->toString() << endl;
-        cout << "value of input = " << getBitVec(inst->sel("in")) << endl;
+        // cout << "Posedge Clocking VALUE OF " << inst->toString() << endl;
+        // cout << "value of input = " << getBitVec(inst->sel("in")) << endl;
         setValueNoUpdate(inst->sel("out"), getWireValue(inst->sel("in")));
       } else if (!updateOnPosedge && negedgeClk) {
 
@@ -604,4 +604,24 @@ namespace EventSim {
       subMod.second->printInstances(instanceName);
     }
   }
+
+  void EventSimulator::setValues(const std::vector<std::pair<std::string, CoreIR::BitVec> >& values) {
+    std::set<CoreIR::Select*> freshSignals;
+    for (auto signal : values) {
+
+      auto name = signal.first;
+      assert(mod->getDef()->canSel(name));
+      CoreIR::Wireable* s = mod->getDef()->sel(name);
+
+      assert(CoreIR::isa<CoreIR::Select>(s));
+
+      CoreIR::Select* sel = CoreIR::cast<CoreIR::Select>(s);
+      
+      setValueNoUpdate(sel, signal.second);
+      freshSignals.insert(sel);
+    }
+
+    updateSignals(freshSignals);
+  }
+
 }

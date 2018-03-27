@@ -443,6 +443,8 @@ namespace EventSim {
     std::set<CoreIR::Select*> sourceDrivers(CoreIR::Wireable* const w);
 
     void printInstances(const std::string& instanceName);
+
+    void setValues(const std::vector<std::pair<std::string, CoreIR::BitVec> >& values);
   };
 
   std::map<CoreIR::Select*, CoreIR::BitVec>
