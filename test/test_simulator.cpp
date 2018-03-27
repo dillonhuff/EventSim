@@ -501,10 +501,6 @@ namespace EventSim {
 
       sim.setValues({{"self.config_addr", BitVec(32, configAddr)},
             {"self.config_data", BitVec(32, configData)}});
-          //   {"self.clk_in", BitVec(1, 1)}});
-
-      // sim.setValue("self.config_addr", BitVec(32, configAddr));
-      // sim.setValue("self.config_data", BitVec(32, configData));
 
       sim.setValue("self.clk_in", BitVec(1, 1));
 
