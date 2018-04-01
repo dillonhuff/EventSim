@@ -30,7 +30,7 @@ namespace EventSim {
   class SignalBit {
   public:
     CellId cell;
-    PortId ports;
+    PortId port;
     int offset;
   };
 
@@ -48,6 +48,8 @@ namespace EventSim {
     std::map<PortId, std::vector<std::vector<SignalBit> > > receivers;
 
   public:
+    Cell() {}
+
     Cell(const CellType cellType_,
          const std::map<Parameter, BitVector> & parameters_) {}
 
@@ -66,6 +68,14 @@ namespace EventSim {
     CellType getCellType() const {
       return cellType;
     }
+
+    void addReceiver(const PortId port, const int offset, const SignalBit receiver) {
+      receivers[port][offset].push_back(receiver);
+    }
+    
+    void setDriver(const PortId port, const int offset, const SignalBit driver) {
+      drivers[port].signals[offset] = driver;
+    }
   };
 
   class CellDefinition {
@@ -78,7 +88,12 @@ namespace EventSim {
     //    For a given port get the list of driver ports (and offsets)
 
   public:
-    
+
+    void setDriver(const SignalBit receiver,
+                   const SignalBit driver) {
+      cells[receiver.cell].setDriver(receiver.port, receiver.offset, driver);
+      cells[driver.cell].addReceiver(driver.port, driver.offset, receiver);
+    }
   };
   
 }
