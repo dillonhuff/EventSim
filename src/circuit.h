@@ -16,23 +16,36 @@ namespace EventSim {
   typedef uint64_t PortId;
   typedef uint64_t NetId;
 
+  enum PortType {
+    PORT_TYPE_IN,
+    PORT_TYPE_OUT
+  };
+
   class Port {
-    std::vector<NetId> nets;
-
   public:
-    Port(const int width) : nets(width) {}
+    int width;
+    PortType type;
+  };
 
-    void setNet(const int i, const NetId net) {
-      nets[i] = net;
-    }
-    
+  class SignalBit {
+  public:
+    CellId cell;
+    PortId ports;
+    int offset;
+  };
+
+  class SignalBus {
+  public:
+    std::vector<SignalBit> signals;
   };
 
   class Cell {
   protected:
     std::map<Parameter, BitVector> parameters;
     CellType cellType;
-    std::map<PortId, int> portWidths;
+    std::map<PortId, Port> portWidths;
+    std::map<PortId, SignalBus> drivers;
+    std::map<PortId, std::vector<std::vector<SignalBit> > > receivers;
 
   public:
     Cell(const CellType cellType_,
@@ -43,9 +56,13 @@ namespace EventSim {
     }
 
     int getPortWidth(const PortId port) const {
-      return portWidths.at(port);
+      return portWidths.at(port).width;
     }
 
+    int getPortType(const PortId port) const {
+      return portWidths.at(port).type;
+    }
+    
     CellType getCellType() const {
       return cellType;
     }
@@ -53,6 +70,12 @@ namespace EventSim {
 
   class CellDefinition {
     std::map<CellId, Cell> cells;
+    // How to represent connections? Map from ports to drivers? Map
+    // from PortIds to receivers as well?
+
+    // Q: What do I want to do with this code?
+    // A: For a given port get all receiver ports (and offsets)
+    //    For a given port get the list of driver ports (and offsets)
 
   public:
     
