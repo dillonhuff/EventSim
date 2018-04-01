@@ -3,6 +3,7 @@
 #include "coreir.h"
 
 #include "algorithm.h"
+#include "circuit.h"
 
 namespace EventSim {
 
